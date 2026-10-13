@@ -1475,6 +1475,19 @@ async function put(k,obj){
   else{S[k][obj.id]=obj;saveLocal();render()}
   return true;
 }
+async function removeTitle(tid){
+  const t=S.titles[tid];if(!t)return true;
+  for(const i of Object.values(S.items).filter(i=>i.titleId===tid))if(!await del("items",i.id))return false;
+  if(t.imageId&&assets)assets.delete(t.imageId).catch(()=>{});
+  return await del("titles",tid);
+}
+async function removeItems(ids){
+  const tids=new Set();let n=0,tn=[];
+  for(const id of ids){const i=S.items[id];if(!i)continue;if(i.titleId)tids.add(i.titleId);if(await del("items",id))n++}
+  for(const tid of tids){const t=S.titles[tid];if(t&&!Object.values(S.items).some(i=>i.titleId===tid)){tn.push(t.name);await removeTitle(tid)}}
+  return {n,tn};
+}
+const delMsg=(r)=>r.tn.length?`削除しました（${r.tn.length===1?"「"+r.tn[0]+"」":r.tn.length+"件のくじ"}の仕入れ・支払いも消しました）`:"削除しました";
 async function del(k,id){
   if(S.mode==="db"){try{await db.collection(COLL[k]).doc(id).delete()}catch(e){return fail(e)}}
   else{delete S[k][id];saveLocal();render()}
@@ -2039,7 +2052,7 @@ function vSettings(){
   ${S.canWrite?`<button class="btn pri block" type="button" data-act="save-settings">設定を保存</button>`:""}
   <div class="grp"><div class="gh">バックアップ</div><div class="box"><button type="button" class="act" data-act="backup">バックアップを書き出す</button>${S.canWrite?`<label class="act" style="cursor:pointer;position:relative">バックアップから読み込む<input type="file" id="bk-in" accept=".json,application/json" style="position:absolute;inset:0;opacity:0"></label>`:""}</div><p class="note" style="padding:0 4px">${IS_APP?"データはこのiPhoneの中に保存されています。機種変更の前や、ときどきバックアップを書き出しておくと安心です":"独立版アプリにデータを移すときは、ここで書き出したファイルを独立版で読み込みます"}</p></div>
   <div class="grp"><div class="gh">データ</div><div class="box"><button type="button" class="act" data-act="export-all">全商品をCSVに書き出す</button>${sn&&S.canWrite?`<button type="button" class="act del" data-act="del-sample">サンプル${sn}件を削除</button>`:""}</div></div>
-  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.13-5</p>
+  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.13-6</p>
   </div>`;
 }
 
@@ -2133,7 +2146,7 @@ function itemDialog(id,preset){
   <div class="rcpt" id="i-calc" aria-live="polite"></div>
   ${sec("pen","soft","メモ","",`<textarea id="i-note" class="ta" rows="2" placeholder="状態、付属品、保管場所など" aria-label="メモ" ${ro}>${esc(i.note)}</textarea>
     <label class="mf sm"><span class="lbl">中分類（任意）</span><input id="i-cat2" class="mini-in" list="cat2list" placeholder="フィギュア など" value="${esc(i.cat2)}" ${ro}><datalist id="cat2list">${cat2s.map(c=>`<option value="${esc(c)}">`).join("")}</datalist></label>`)}
-  ${id&&S.canWrite?`<div class="box"><button type="button" class="act" data-dup-item="${esc(id)}">複製して新しく登録</button><button type="button" class="act del" data-del-item="${esc(id)}">この商品を削除</button></div>`:""}`;
+  ${id&&S.canWrite?`<div class="box"><button type="button" class="act" data-dup-item="${esc(id)}">複製して新しく登録</button><button type="button" class="act del" data-del-item="${esc(id)}">${i.titleId&&S.titles[i.titleId]&&Object.values(S.items).filter(x=>x.titleId===i.titleId).length===1?"この商品を削除（くじの仕入れも消えます）":"この商品を削除"}</button></div>`:""}`;
   const foot=`<div class="fsum"><span id="i-flbl">利益</span><b id="i-foot">—</b></div><button type="submit" class="btn pri">${id?"保存する":"登録する"}</button>`;
   openSheet(id?"商品":"商品を追加",body,"保存","item-form",false,foot);
   const form=$("#item-form");
@@ -2227,7 +2240,7 @@ function titleDialog(id,preset){
     <div class="split" id="t-split"></div>`)}
   ${s&&s.its.length?`<div class="grp"><div class="gh">このタイトルの商品</div><div class="cards" style="background:#fff;border-radius:18px;padding:0 14px">${s.its.sort((a,b)=>(a.prize||"").localeCompare(b.prize||"","ja")).map(i=>itemCard(i,D,C)).join("")}</div></div>`:""}
   ${sec("pen","soft","メモ","",`<textarea id="t-note" class="ta" rows="2" aria-label="メモ" ${ro}>${esc(t.note)}</textarea><label class="mf sm"><span class="lbl">中分類（任意）</span><input id="t-cat2" class="mini-in" value="${esc(t.cat2)}" ${ro}></label>`)}
-  ${id&&S.canWrite?`<div class="box"><button type="button" class="act" data-add-to-title="${esc(id)}">このタイトルに商品を1点追加</button><button type="button" class="act del" data-del-title="${esc(id)}">このタイトルを削除</button></div>`:""}`;
+  ${id&&S.canWrite?`<div class="box"><button type="button" class="act" data-add-to-title="${esc(id)}">このタイトルに商品を1点追加</button><button type="button" class="act del" data-del-title="${esc(id)}">このタイトルを削除（景品もすべて消えます）</button></div>`:""}`;
   const foot=`<div class="fsum"><span>1点あたり</span><b id="t-foot">—</b></div><button type="submit" class="btn pri">${id?"保存する":"登録する"}</button>`;
   openSheet(id?W.nm:W.nm+"を登録",body,"保存","title-form",false,foot);
   const form=$("#title-form");let img=null,bulkTouched=has(t.bulkCost)&&!(has(t.unitPrice)&&has(t.draws)&&+t.unitPrice*+t.draws===+t.bulkCost);
@@ -2421,7 +2434,7 @@ document.addEventListener("click",async e=>{
   if(a==="del-cancel"){S.delMode=false;S.delSel.clear();render();return}
   if(a==="del-all"){const D=derive(),ids=filteredItems(D,cfg()).map(i=>i.id),allOn=ids.every(x=>S.delSel.has(x));ids.forEach(x=>allOn?S.delSel.delete(x):S.delSel.add(x));render();return}
   if(a==="del-go"){if(!S.delSel.size)return;if(!ds.armed){ds.armed="1";el.textContent="もう一度押すと削除";setTimeout(()=>{if(el.isConnected){delete ds.armed;el.textContent=S.delSel.size+"点を削除"}},3000);return}
-    const ids=[...S.delSel];let k=0;for(const id of ids){if(S.items[id]&&await del("items",id))k++}S.delMode=false;S.delSel.clear();render();toast(`${k}点を削除しました`);return}
+    const r=await removeItems([...S.delSel]);S.delMode=false;S.delSel.clear();render();toast(r.tn.length?`${r.n}点と、${delMsg(r).replace(/^削除しました（|）$/g,"")}`:`${r.n}点を削除しました`);return}
   if(ds.item){itemDialog(ds.item);return}
   if(ds.title){titleDialog(ds.title);return}
   if(ds.exp){expDialog(ds.exp);return}
@@ -2447,9 +2460,9 @@ document.addEventListener("click",async e=>{
   if(ds.cal){const v=+ds.cal;if(v===0){S.cal.y=T0.getFullYear();S.cal.m=T0.getMonth();S.cal.sel=TD}else{const d=new Date(S.cal.y,S.cal.m+v,1);S.cal.y=d.getFullYear();S.cal.m=d.getMonth();const k=`${S.cal.y}-${String(S.cal.m+1).padStart(2,"0")}`;S.cal.sel=k===CUR?TD:k+"-01"}render();return}
   if(ds.delItem||ds.delTitle||ds.delExp){
     if(!ds.armed){ds.armed="1";ds.label=el.textContent;el.textContent="もう一度押すと削除";setTimeout(()=>{if(el.isConnected){delete ds.armed;el.textContent=ds.label}},3000);return}
-    if(ds.delItem){if(await del("items",ds.delItem)){dlg.close();toast("削除しました")}}
+    if(ds.delItem){const r=await removeItems([ds.delItem]);if(r.n){dlg.close();toast(delMsg(r))}}
     else if(ds.delExp){if(await del("exps",ds.delExp)){dlg.close();toast("削除しました")}}
-    else{const tid=ds.delTitle;for(const i of Object.values(S.items).filter(i=>i.titleId===tid))await put("items",Object.assign({},i,{titleId:null}));if(S.titles[tid]?.imageId&&assets)assets.delete(S.titles[tid].imageId).catch(()=>{});if(await del("titles",tid)){dlg.close();toast("削除しました（商品は残っています）")}}
+    else{const tid=ds.delTitle,nn=Object.values(S.items).filter(i=>i.titleId===tid).length;if(await removeTitle(tid)){dlg.close();toast(nn?`削除しました（景品${nn}点も消しました）`:"削除しました")}}
     return;
   }
   if(ds.dupItem){const s=S.items[ds.dupItem];itemDialog(null,Object.assign({},s,{id:undefined,status:"stock",salePrice:null,sDate:"",feeAmount:null,priceLog:[],listedDate:"",sample:false}));return}
