@@ -1120,6 +1120,22 @@ input[type=number]{-moz-appearance:textfield}
 .spamt{display:flex;align-items:center;gap:2px;background:#fff;border-radius:11px;padding:0 10px;box-shadow:inset 0 0 0 1px #dfe5e8;height:36px;width:118px}
 .spamt i{font-style:normal;color:var(--ink3);font-weight:800}
 .spamt input{border:0;outline:0;background:none;width:100%;font:800 15px var(--num);text-align:right;color:var(--ink)}
+/* multi sell */
+.pk{position:relative}
+.pk .pko{flex:none;width:24px;height:24px;border-radius:50%;box-shadow:inset 0 0 0 2px #c8d1d6;display:grid;place-items:center;font:800 12px var(--num);font-style:normal;color:#fff;transition:background .15s,transform .15s}
+.pk[aria-pressed="true"] .pko{background:var(--orange);box-shadow:none;transform:scale(1.08)}
+.pk[aria-pressed="true"]{background:linear-gradient(90deg,#fff4e8,transparent 70%)}
+.bdl{display:flex;flex-wrap:wrap;gap:8px}
+.bdi{display:flex;align-items:center;gap:7px;background:var(--soft);border-radius:12px;padding:5px 10px 5px 5px;max-width:100%}
+.bdi .th{width:30px;height:30px;border-radius:8px}
+.bdi b{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bsp{margin-top:12px;padding-top:10px;border-top:1.5px dashed #e3e7ea}
+.bsh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;font-size:12px;font-weight:800;color:var(--ink2)}
+.bsh small{font-size:10.5px;color:var(--ink3);font-weight:700}
+.bsr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:4px 0;font-size:12.5px}
+.bsr > span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bsr b{font-family:var(--num)}
+.bsr small{font:800 11.5px var(--num);min-width:62px;text-align:right}
 @media (max-width:559px){
   dialog{width:100%;max-width:100%;height:calc(100dvh - env(safe-area-inset-top,0px) - 10px);max-height:none;margin:auto 0 0;border-radius:16px 16px 0 0}
   dialog.short{height:auto;inset:auto 0 0 0;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 10px)}
@@ -1424,13 +1440,21 @@ INTRO.sold=()=>({cap:"チャリーン！",html:`<div class="big3 sd"><span class
   <g transform="translate(100 102) rotate(-12)"><g class="stamp"><rect x="-52" y="-22" width="104" height="44" rx="8" fill="#fff" fill-opacity=".7" stroke="#d4433d" stroke-width="6"/><text y="13" text-anchor="middle" font-size="36" font-weight="900" fill="#d4433d" font-family="ui-rounded,sans-serif" letter-spacing="2">SOLD</text></g></g>
   <g transform="translate(150 150)"><g class="coinp2"><circle r="20" fill="#ffc531" stroke="${INK}" stroke-width="4"/><text y="7" text-anchor="middle" font-size="20" font-weight="900" fill="${INK}" font-family="ui-rounded,sans-serif">¥</text></g></g>
   </svg></div>`});
+let SELL_SEL=[];
+function sellPickUpd(){
+  document.querySelectorAll("#sell-pick .pk").forEach(b=>{const k=SELL_SEL.indexOf(b.dataset.pick);b.setAttribute("aria-pressed",k>=0);let o=b.querySelector(".pko");if(!o){o=document.createElement("i");o.className="pko";b.prepend(o)}o.textContent=k>=0?k+1:""});
+  const go=$('[data-act="sell-go"]'),c=$("#sl-cnt"),n=SELL_SEL.length;if(c)c.textContent=n+"点";
+  if(go){go.disabled=!n;go.textContent=!n?"タップして選ぶ":n===1?"次へ":`${n}点をまとめて売る`}
+}
 function sellDialog(id){
   const C=cfg(),D=derive();
+  if(Array.isArray(id)){if(id.length===1)id=id[0];else return bundleSell(id,C,D)}
   if(!id){
     const stock=Object.values(S.items).filter(i=>i.status==="stock").sort((a,b)=>(b.pDate||"").localeCompare(a.pDate||""));
     openSheet("どれが売れた？",stock.length?`<label class="search">${I(IC.search)}<input type="search" id="sl-q" placeholder="名前・賞・タイトルで探す" aria-label="在庫を探す"></label>
       <div class="pickl">${stock.map(i=>{const r=D.R[i.id],t=S.titles[i.titleId];return `<button type="button" class="pk" data-pick="${esc(i.id)}" data-key="${esc([i.name,i.prize,t?.name].join(" ").toLowerCase())}">${thumb(imgSrc(t),i.cat1)}<span class="main"><span class="t1">${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</span><span class="t2">${esc([t?.name,r.age!=null?`在庫${r.age}日`:""].filter(Boolean).join("・"))}</span></span><span class="side"><span class="sub">原価</span><span class="amt">${yen(r.alloc)}</span></span></button>`}).join("")}</div>`
-      :`<div class="card empty">${lane(true)}<b>在庫がありません</b><span>まずは仕入れた商品を記録しましょう</span></div>`,null,"sell-pick");
+      :`<div class="card empty">${lane(true)}<b>在庫がありません</b><span>まずは仕入れた商品を記録しましょう</span></div>`,null,"sell-pick",false,stock.length?`<div class="fsum"><span>選んだ数</span><b id="sl-cnt">0点</b></div><button type="button" class="btn pri sellbtn" data-act="sell-go" disabled>タップして選ぶ</button>`:"");
+    SELL_SEL=[];const ph=$("#sell-pick .pickl");if(ph)ph.insertAdjacentHTML("beforebegin",`<p class="note" style="margin:2px 4px 8px">まとめて売れたときは、いくつでも選べます</p>`);
     const q=$("#sl-q");if(q)q.addEventListener("input",()=>{const v=q.value.trim().toLowerCase();document.querySelectorAll("#sell-pick .pk").forEach(b=>b.hidden=!!v&&!b.dataset.key.includes(v))});
     return;
   }
@@ -1452,6 +1476,38 @@ function sellDialog(id){
   f.addEventListener("submit",async e=>{e.preventDefault();const c=calc();if(!c.p){f.querySelector("#sl-p").focus();toast("売れた値段を入れてください");return}
     const d=Object.assign({},i,{status:"sold",salePrice:c.p,sDate:v("#sl-d")||TD,platform:chipVal(f,"platform"),feeRate:c.rate,feeAmount:null,ship:chipVal(f,"ship"),shipCost:n(v("#sl-ship")),updatedAt:Date.now()});
     if(await put("items",d)){dlg.close();celebrate(`売れました！ 利益 ${sYen(c.pr)}`)}});
+  setTimeout(()=>{const p=f.querySelector("#sl-p");if(p&&!p.value)p.focus()},350);
+  calc();
+}
+
+function bundleSell(ids,C,D){
+  const its=ids.map(x=>Object.assign({},S.items[x])).filter(x=>x.id),cost=its.reduce((a,i)=>a+D.R[i.id].alloc,0);
+  const lp=its.map(i=>n(i.listPrice)),al=its.map(i=>D.R[i.id].alloc);
+  const basis=lp.every(v=>v>0)?["出品価格の比率",lp]:al.every(v=>v>0)?["原価の比率",al]:["均等",its.map(()=>1)];
+  const W=basis[1],SW=W.reduce((a,b)=>a+b,0);
+  const share=tot=>{let acc=0;return W.map((w,k)=>{if(k===W.length-1)return tot-acc;const v=Math.floor(tot*w/SW);acc+=v;return v})};
+  const plat=its[0].platform||C.platforms[0]?.name||"",lsum=lp.reduce((a,b)=>a+b,0);
+  const t0=S.titles[its[0].titleId],same=its.every(i=>i.titleId&&i.titleId===its[0].titleId);
+  openSheet("まとめて売れた！",`
+  <section class="fs"><div class="bdl">${its.map(i=>{const t=S.titles[i.titleId];return `<div class="bdi">${thumb(imgSrc(t),i.cat1)}<b>${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.prize?"":i.name)}</b></div>`}).join("")}</div>
+    <p class="note" style="margin:8px 2px 0">${same?esc(t0.name)+"・":""}${its.length}点・原価合計 ${yen(cost)}</p></section>
+  <section class="fs amtcard"><span class="lbl">まとめていくらで売れた？</span><label class="bigamt"><i>¥</i><input id="sl-p" type="number" inputmode="numeric" placeholder="0" value="${lsum||""}" aria-label="売れた値段（合計）"></label></section>
+  ${sec("tag","ink","どこで売れた？","",`${chipF("platform","販売先",C.platforms.map(p=>[p.name,`${esc(p.name)}<small>${p.rate}%</small>`]),plat)}
+    ${chipF("ship","送り方",C.ships.map(x=>[x.name,`${esc(x.name)}<small>${x.cost?"¥"+x.cost:""}</small>`]),"",false,true)}
+    <div class="two">${money("sl-ship","送料（まとめて）","","0",true)}${dateF("sl-d","売れた日",TD)}</div>`)}
+  <div class="rcpt" id="sl-r"></div>`,null,"sell-form",false,`<div class="fsum"><span>利益</span><b id="sl-f">—</b></div><button type="submit" class="btn pri sellbtn">${its.length}点を売れた！で記録</button>`);
+  const f=$("#sell-form"),v=s=>f.querySelector(s).value.trim();
+  const calc=()=>{const p=n(v("#sl-p")),pl=C.platforms.find(x=>x.name===chipVal(f,"platform")),rate=pl?pl.rate:C.defaultRate,fee=Math.floor(p*rate/100),sh=n(v("#sl-ship")),pr=p-fee-sh-cost;
+    const ps=share(p),fs=share(fee),ss=share(sh);
+    $("#sl-r").innerHTML=`<div class="ln"><span>売れた値段（${its.length}点）</span><b>${yen(p)}</b></div><div class="ln"><span>手数料 ${rate}%</span><b>−${yen(fee)}</b></div><div class="ln"><span>送料</span><b>−${yen(sh)}</b></div><div class="ln"><span>原価合計</span><b>−${yen(cost)}</b></div><div class="tot"><span>利益</span><b class="${pm(pr)}">${sYen(pr)}</b></div>
+      <div class="bsp"><div class="bsh"><span>1点ずつの内訳</span><small>${basis[0]}で自動振り分け</small></div>${its.map((i,k)=>{const q=ps[k]-fs[k]-ss[k]-al[k];return `<div class="bsr"><span>${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</span><b>${yen(ps[k])}</b><small class="${pm(q)}">${sYen(q)}</small></div>`}).join("")}</div>`;
+    const ft=$("#sl-f");if(ft){ft.textContent=p?sYen(pr):"—";ft.className=pm(pr)}return {p,rate,sh,pr,ps,fs,ss}};
+  f.addEventListener("input",calc);
+  f.addEventListener("chip",e=>{if(e.detail.name==="ship"){const x=C.ships.find(z=>z.name===e.detail.v);if(x&&x.cost)f.querySelector("#sl-ship").value=x.cost}calc()});
+  f.addEventListener("submit",async e=>{e.preventDefault();const c=calc();if(!c.p){f.querySelector("#sl-p").focus();toast("売れた値段を入れてください");return}
+    const bid=uid("b"),sd=v("#sl-d")||TD,pf=chipVal(f,"platform"),sp=chipVal(f,"ship");let ok=true;
+    for(let k=0;k<its.length;k++){const d=Object.assign({},its[k],{status:"sold",salePrice:c.ps[k],sDate:sd,platform:pf,feeRate:c.rate,feeAmount:c.fs[k],ship:sp,shipCost:c.ss[k],bundleId:bid,bundleN:its.length,updatedAt:Date.now()});if(!await put("items",d)){ok=false;break}}
+    if(ok){dlg.close();celebrate(`${its.length}点まとめて売れました！ 利益 ${sYen(c.pr)}`)}});
   setTimeout(()=>{const p=f.querySelector("#sl-p");if(p&&!p.value)p.focus()},350);
   calc();
 }
@@ -2068,7 +2124,7 @@ function vSettings(){
   ${S.canWrite?`<button class="btn pri block" type="button" data-act="save-settings">設定を保存</button>`:""}
   <div class="grp"><div class="gh">バックアップ</div><div class="box"><button type="button" class="act" data-act="backup">バックアップを書き出す</button>${S.canWrite?`<label class="act" style="cursor:pointer;position:relative">バックアップから読み込む<input type="file" id="bk-in" accept=".json,application/json" style="position:absolute;inset:0;opacity:0"></label>`:""}</div><p class="note" style="padding:0 4px">${IS_APP?"データはこのiPhoneの中に保存されています。機種変更の前や、ときどきバックアップを書き出しておくと安心です":"独立版アプリにデータを移すときは、ここで書き出したファイルを独立版で読み込みます"}</p></div>
   <div class="grp"><div class="gh">データ</div><div class="box"><button type="button" class="act" data-act="export-all">全商品をCSVに書き出す</button>${sn&&S.canWrite?`<button type="button" class="act del" data-act="del-sample">サンプル${sn}件を削除</button>`:""}</div></div>
-  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.13-8</p>
+  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-1</p>
   </div>`;
 }
 
@@ -2521,7 +2577,8 @@ document.addEventListener("click",async e=>{
   if(ds.add){const box=document.querySelector(`[data-list="${ds.add}"]`);const d=document.createElement("div");d.className="fr li";d.innerHTML=ds.pair?`<input aria-label="名前"><input class="nn" type="number" inputmode="decimal" aria-label="${ds.pair}"><span class="unit">${ds.pair}</span><button type="button" class="rm" data-rm>削除</button>`:`<input aria-label="項目"><button type="button" class="rm" data-rm>削除</button>`;box.insertBefore(d,el);d.querySelector("input").focus();return}
   if(el.hasAttribute("data-rm")){el.closest(".li").remove();return}
   if(a==="sell"){withIntro("sold",()=>sellDialog(),el);return}
-  if(ds.pick){sellDialog(ds.pick);return}
+  if(ds.pick){const k=SELL_SEL.indexOf(ds.pick);k>=0?SELL_SEL.splice(k,1):SELL_SEL.push(ds.pick);if(navigator.vibrate)navigator.vibrate(8);sellPickUpd();return}
+  if(a==="sell-go"){if(SELL_SEL.length)sellDialog(SELL_SEL.slice());return}
   if(a==="new-item")withIntro("box",()=>itemDialog(),el);
   if(a==="new-title")withIntro(Math.random()<.5?"kuji":"capsule",()=>titleDialog(),el);
   if(a==="new-exp")withIntro("receipt",()=>expDialog(),el);
