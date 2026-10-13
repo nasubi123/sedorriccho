@@ -1,6 +1,6 @@
 // せどりっちょ オフライン用（画面は常に最新を取りに行き、圏外のときだけ保存版を使う）
-const CACHE="sedorriccho-v9";
-const SHELL=["./","./index.html","./manifest.webmanifest","./icon-180.png","./icon-192.png","./icon-512.png"];
+const CACHE="sedorriccho-v10";
+const SHELL=["./","./index.html","./manifest.webmanifest","./icon2-180.png","./icon2-192.png","./icon2-512.png"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL.map(u=>new Request(u,{cache:"reload"})))).then(()=>self.skipWaiting()))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",e=>{
