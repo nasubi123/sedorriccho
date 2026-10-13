@@ -1031,6 +1031,35 @@ input[type=number]{-moz-appearance:textfield}
 .sumbar2 span{font-size:11px;font-weight:700;color:var(--ink2);display:flex;align-items:center;gap:5px}
 .sumbar2 b{font:700 16px var(--num);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sumbar2 b small{font-size:11px;margin-left:1px;color:var(--ink2)}
+/* collection cabinet */
+.b-kept{background:linear-gradient(180deg,#2a2f4a 0%,#1c2036 100%);box-shadow:inset 0 0 0 1.5px #3c4266,0 10px 24px -14px rgb(20 20 50 / .6)}
+.b-kept::before{background:radial-gradient(60% 40% at 20% 0%,rgb(255 240 200 / .16),transparent 70%),radial-gradient(60% 40% at 80% 0%,rgb(255 240 200 / .12),transparent 70%)}
+.b-kept .sign{background:linear-gradient(180deg,#ffd76a,#f2b22e);color:#4a3200;border-color:#a87700;box-shadow:0 3px 0 #a87700}
+.b-kept .sign::before,.b-kept .sign::after{background:#a87700}
+.b-kept .signrow .sh{color:#cfd3f0}
+.case{position:relative;margin:0 -4px 14px;padding:10px 8px 2px;border-radius:16px;background:linear-gradient(180deg,rgb(255 255 255 / .07),rgb(255 255 255 / .02));box-shadow:inset 0 0 0 1px rgb(255 255 255 / .12)}
+.case::after{content:"";position:absolute;top:0;left:12%;width:22%;height:100%;background:linear-gradient(100deg,transparent,rgb(255 255 255 / .06),transparent);pointer-events:none;border-radius:16px}
+.case .plate{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px;margin:0 2px 14px;padding:7px 10px;border-radius:10px;background:linear-gradient(180deg,#d9b25a,#b88d34);color:#2d1f00;box-shadow:0 2px 0 #7e5f1d,inset 0 1px 0 rgb(255 255 255 / .4);cursor:pointer}
+.case .plate .pt{font-weight:800;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.case .plate .pr{height:6px;width:70px;border-radius:9px;background:rgb(0 0 0 / .2);overflow:hidden}
+.case .plate .pr i{display:block;height:100%;background:#fff;border-radius:9px}
+.case .plate .left{grid-column:1/-1;font-size:10.5px;font-weight:700;opacity:.85}
+.case .plate .left b{font-family:var(--num);margin:0 2px}
+.case .plate .done{font-size:11px;font-weight:800;background:#fff;color:#c47a00;border-radius:99px;padding:2px 8px;animation:pop2 .6s ease both}
+.case.paid{box-shadow:inset 0 0 0 1.5px rgb(255 215 106 / .55),0 0 22px -6px rgb(255 215 106 / .45)}
+@keyframes pop2{0%{transform:scale(.6)}70%{transform:scale(1.08)}100%{transform:scale(1)}}
+.b-kept .pd .pkg{filter:none;box-shadow:0 10px 16px -8px rgb(0 0 0 / .7),0 0 0 3px rgb(255 255 255 / .06)}
+.b-kept .pd::before{content:"";position:absolute;left:50%;top:-14px;width:110%;height:calc(100% + 18px);transform:translateX(-50%);background:radial-gradient(50% 60% at 50% 0%,rgb(255 244 210 / .22),transparent 75%);pointer-events:none}
+.glass{height:9px;margin:4px -8px 0;border-radius:3px;background:linear-gradient(180deg,rgb(210 230 255 / .55),rgb(160 190 230 / .25));box-shadow:0 6px 12px -6px rgb(120 170 255 / .45),inset 0 1px 0 rgb(255 255 255 / .7)}
+.b-kept .ptag{background:#fffdf6}
+.b-kept .ptag::before{background:#d9b25a}
+.b-kept .ptag .hole{background:#2a2f4a;box-shadow:none}
+.ptag.t-kept .pp{font-size:14px;color:#6b4ce0}
+.ptag .free{display:inline-block;background:linear-gradient(180deg,#ffd76a,#f2b22e);color:#4a3200;border-radius:7px;padding:0 7px;font-size:13px;transform:rotate(-4deg)}
+.ptag .jl{font:800 9px var(--brand,inherit);margin-right:2px;vertical-align:2px;opacity:.8}
+.ptag .strike{text-decoration:line-through;opacity:.6}
+.row1.kp .v small{color:#6b4ce0}
+.pzq button[data-pz="★"]{background:#efe9ff;color:#6b4ce0}
 @media (max-width:559px){
   dialog{width:100%;max-width:100%;height:calc(100dvh - env(safe-area-inset-top,0px) - 10px);max-height:none;margin:auto 0 0;border-radius:16px 16px 0 0}
   dialog.short{height:auto;inset:auto 0 0 0;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 10px)}
@@ -1367,6 +1396,23 @@ function sellDialog(id){
   calc();
 }
 
+/* collection */
+function keptCalc(tid,over){
+  const t=S.titles[tid];if(!t)return null;
+  let its=Object.values(S.items).filter(i=>i.titleId===tid);
+  if(over){its=its.filter(i=>i.id!==over.id);if(over.titleId===tid)its.push(over)}
+  const M=allocMap(its,S.titles),C=cfg();let cost=n(t.bulkCost),net=0;
+  its.forEach(i=>{if(has(i.cost))cost+=+i.cost;if(SOLD(i.status))net+=calcItem(i,M.A[i.id]||0,C).net});
+  const kept=its.filter(i=>i.status==="kept"),tg=(M.grp[tid]||[]).length,nk=kept.filter(i=>!has(i.cost)).length;
+  const unit=has(t.bulkCost)&&(tg+nk)?n(t.bulkCost)/(tg+nk):0;
+  const base={};kept.forEach(i=>{base[i.id]=has(i.cost)?+i.cost:unit});
+  const sb=Object.values(base).reduce((a,b)=>a+b,0),remaining=Math.max(0,cost-net),k=sb?Math.min(1,remaining/sb):0;
+  const E={};kept.forEach(i=>{E[i.id]={unit:base[i.id],eff:Math.round(base[i.id]*k)}});
+  return {t,kept,unit,remaining,E,cost,net,paid:cost>0&&remaining<=0,recov:cost?Math.min(1,net/cost):0,effSum:Math.round(sb*k),baseSum:sb};
+}
+function keptAll(){const out={};Object.values(S.items).forEach(i=>{if(i.status==="kept"&&i.titleId&&!out[i.titleId])out[i.titleId]=keptCalc(i.titleId)});return out}
+function keptOf(i,KA){if(i.titleId&&KA[i.titleId]&&KA[i.titleId].E[i.id])return Object.assign({paid:KA[i.titleId].paid},KA[i.titleId].E[i.id]);const c=n(i.cost);return {unit:c,eff:c,paid:false,solo:true}}
+
 /* store */
 function saveLocal(){try{localStorage.setItem("sedori-data",JSON.stringify({items:S.items,titles:S.titles,exps:S.exps,settles:S.settles,cfg:S.cfg}))}catch(e){toast("保存容量がいっぱいです。画像を減らすかバックアップしてください")}}
 function startLocal(){S.mode="local";try{const d=JSON.parse(localStorage.getItem("sedori-data")||"null");if(d){S.items=d.items||{};Object.values(S.items).forEach(x=>x.status=normSt(x.status));S.titles=d.titles||{};S.exps=d.exps||{};S.settles=d.settles||{};S.cfg=d.cfg||null}}catch(e){}render()}
@@ -1493,7 +1539,7 @@ function itemCard(i,D,C){
   const r=D.R[i.id],t=S.titles[i.titleId];
   let amt,sub;
   if(SOLD(i.status)){amt=`<span class="${pm(r.profit)}">${sYen(r.profit)}</span>`;sub=`${yen(r.sale)}で売却`}
-  else if(i.status==="kept"){amt=`<span class="${pm(r.profit)}">${sYen(r.profit)}</span>`;sub="原価分"}
+  else if(i.status==="kept"){const q=keptOf(i,keptAll());amt=q.paid||!q.eff?`<span class="plus">タダ！</span>`:`<span class="faint">${yen(q.eff)}</span>`;sub=q.solo?"コレクション":`★コレクション・単価 ${yen(q.unit)}`}
   else if(r.expected!=null){amt=`<span class="faint">${sYen(r.expected)}</span>`;sub=`出品 ${yen(+i.listPrice)}`}
   else{amt=`<span class="faint">${yen(r.alloc)}</span>`;sub="原価"}
   const t2=[t?t.name:"",i.cat2||(!t?i.cat1:"")].filter(Boolean).join("・");
@@ -1511,7 +1557,7 @@ function gridTile(i,D,C){
 }
 
 /* 商品棚 */
-const SHELF_ORDER=[["stock","在庫","お店に並んでいます"],["sold","売れた","おつかれさま！"],["kept","自分用","手元に残すもの"]];
+const SHELF_ORDER=[["stock","在庫","お店に並んでいます"],["sold","売れた","おつかれさま！"],["kept","コレクション","自分で確保したもの"]];
 function shelfProduct(i,D,C){
   const r=D.R[i.id],t=S.titles[i.titleId],src=imgSrc(t),sold=SOLD(i.status),stale=isStale(i,r,C);
   const cc=i.cat1==="一番くじ"?"c1":i.cat1==="ガチャガチャ"?"c2":i.cat1==="不用品"?"c3":"c4";
@@ -1522,16 +1568,26 @@ function shelfTag(i,D,C,k){
   const r=D.R[i.id],sold=SOLD(i.status),stale=isStale(i,r,C);
   let price,sub,cls="";
   if(sold){price=yen(r.sale);sub=`<span class="${pm(r.profit)}">利益 ${sYen(r.profit)}</span>`;cls="t-sold"}
-  else if(i.status==="kept"){price="自分用";sub=`原価 ${yen(r.alloc)}`;cls="t-kept"}
+  else if(i.status==="kept"){const q=keptOf(i,S._KA||keptAll());price=q.paid||!q.eff?`<span class="free">タダ！</span>`:`<small class="jl">実質</small>${yen(q.eff)}`;sub=q.unit&&!q.solo?`<span class="${q.paid?"strike":""}">単価 ${yen(q.unit)}</span>`:(q.solo?"仕入れ値":"");cls="t-kept"}
   else if(has(i.listPrice)){price=yen(+i.listPrice);sub=r.expected!=null?`<span class="${pm(r.expected)}">見込 ${sYen(r.expected)}</span>`:"";cls=stale?"t-stale":""}
   else{price="価格未定";sub=`原価 ${yen(r.alloc)}`;cls="t-none"}
   return `<div class="ptag ${cls}" role="button" tabindex="0" data-item="${esc(i.id)}" style="--tilt:${[-2,1.5,-1,2,-1.5,1][k%6]}deg"><span class="hole"></span>${stale?`<span class="sale">売れ残り</span>`:""}<span class="pn">${esc(i.name||"名称なし")}</span><b class="pp">${price}</b><span class="ps">${sub}</span>${r.age!=null?`<span class="pa">${r.age}日目</span>`:""}</div>`;
 }
 function shelfHTML(items,D,C){
-  const by={};items.forEach(i=>{(by[i.status]=by[i.status]||[]).push(i)});
-  return `<div class="store">${SHELF_ORDER.filter(([k])=>by[k]&&by[k].length).map(([k,l,h])=>{const arr=by[k],rows=[];for(let x=0;x<arr.length;x+=3)rows.push(arr.slice(x,x+3));
+  const by={};items.forEach(i=>{(by[i.status]=by[i.status]||[]).push(i)});S._KA=keptAll();
+  return `<div class="store">${SHELF_ORDER.filter(([k])=>by[k]&&by[k].length).map(([k,l,h])=>{if(k==="kept")return collectionHTML(by[k],D,C);const arr=by[k],rows=[];for(let x=0;x<arr.length;x+=3)rows.push(arr.slice(x,x+3));
     return `<section class="bay b-${k}"><div class="signrow"><span class="sign">${I(STI[k],2.2)}${l}<span class="sc">${arr.length}</span></span><span class="sh">${h}</span>${k==="stock"&&S.canWrite?`<button type="button" class="baysell" data-act="sell">売れた！</button>`:""}</div>
       ${rows.map(row=>`<div class="shelfrow"><div class="goods">${row.map(i=>shelfProduct(i,D,C)).join("")}</div><div class="plank" aria-hidden="true"></div><div class="tags">${row.map((i,ix)=>shelfTag(i,D,C,ix)).join("")}</div></div>`).join("")}</section>`}).join("")}</div>`;
+}
+function collectionHTML(arr,D,C){
+  const KA=S._KA||keptAll(),g={};arr.forEach(i=>{const k=i.titleId&&S.titles[i.titleId]?i.titleId:"_";(g[k]=g[k]||[]).push(i)});
+  const keys=Object.keys(g).sort((a,b)=>a==="_"?1:b==="_"?-1:(S.titles[b].pDate||"").localeCompare(S.titles[a].pDate||""));
+  const tot=arr.reduce((a,i)=>a+keptOf(i,KA).eff,0),free=arr.filter(i=>{const q=keptOf(i,KA);return q.paid||!q.eff}).length;
+  return `<section class="bay b-kept"><div class="signrow"><span class="sign">${I(IC.star||STI.kept,2.2)}コレクション<span class="sc">${arr.length}</span></span><span class="sh">${free?`タダ ${free}点・`:""}実質 ${yen(tot)}</span></div>
+  ${keys.map(k=>{const its=g[k],kc=k==="_"?null:KA[k],t=k==="_"?null:S.titles[k],rows=[];for(let x=0;x<its.length;x+=3)rows.push(its.slice(x,x+3));
+    const w=kc?Math.round(kc.recov*100):0;
+    return `<div class="case${kc&&kc.paid?" paid":""}">${t?`<div class="plate" role="button" tabindex="0" data-title="${esc(t.id)}"><span class="pt">${esc(t.name)}</span>${kc.paid?`<span class="done">精算済み！ぜんぶタダ</span>`:`<span class="pr"><i style="width:${w}%"></i></span><span class="left">あと<b>${yen(kc.remaining)}</b>売れたらタダ</span>`}</div>`:`<div class="plate"><span class="pt">そのほか</span></div>`}
+    ${rows.map(row=>`<div class="shelfrow"><div class="goods">${row.map(i=>shelfProduct(i,D,C)).join("")}</div><div class="glass" aria-hidden="true"></div><div class="tags">${row.map((i,ix)=>shelfTag(i,D,C,ix)).join("")}</div></div>`).join("")}</div>`}).join("")}</section>`;
 }
 function eventRow(e){
   const th=e.type==="exp"?`<span class="th">${I(IC.receipt)}</span>`:thumb(e.img,e.cat,false,e.type==="sell");
@@ -1806,7 +1862,7 @@ function vTitlesBody(D){
   return `<div class="sumbar"><span><b>${rows.length}</b>タイトル</span><span>黒字 <b>${plus}</b></span><span>合計 <b class="${pm(tb)}">${sYen(tb)}</b></span></div>
   <div class="cards">${rows.map(({t,s})=>{const w=s.recov==null?0:Math.min(s.recov,2)/2*100;
     return `<article class="tcard" role="button" tabindex="0" data-title="${esc(t.id)}">
-      <div class="top">${thumb(imgSrc(t),t.cat1,true)}<div class="main"><h3>${esc(t.name)}</h3><div class="pills">${t.cat1?`<span class="pill">${esc(t.cat1)}</span>`:""}${t.draws?`<span class="pill days">${t.draws}回</span>`:""}${s.tg?`<span class="pill listed">${s.per!=null?`当たり${s.tg}点・1点 ${yen(s.per)}`:`当たり${s.tg}点・値段比`}</span>`:""}</div></div></div>
+      <div class="top">${thumb(imgSrc(t),t.cat1,true)}<div class="main"><h3>${esc(t.name)}</h3><div class="pills">${t.cat1?`<span class="pill">${esc(t.cat1)}</span>`:""}${t.draws?`<span class="pill days">${t.draws}回</span>`:""}${(()=>{const kn=s.its.filter(i=>i.status==="kept").length;if(!kn)return "";const kc=keptCalc(t.id);return `<span class="pill kept">★${kn}${kc&&kc.paid?"・タダ！":""}</span>`})()}${s.tg?`<span class="pill listed">${s.per!=null?`当たり${s.tg}点・1点 ${yen(s.per)}`:`当たり${s.tg}点・値段比`}</span>`:""}</div></div></div>
       <div class="bal"><span class="big n ${pm(s.bal)}">${sYen(s.bal)}</span><span class="sub">全部売れたら <b class="n ${pm(s.proj)}">${sYen(s.proj)}</b></span></div>
       <div><div class="meter ${s.recov>=1?"ok":""}"><i style="width:${w}%"></i><b></b></div><div class="mlab"><span>回収率 <b>${pct(s.recov)}</b></span><span>仕入 <b>${yen(s.cost)}</b>・販売 <b>${s.sold}/${s.its.length}</b></span></div></div>
       ${s.its.length?`<div class="pz">${s.its.sort((a,b)=>(a.prize||"").localeCompare(b.prize||"","ja")).slice(0,20).map(i=>`<span class="${i.status}">${esc(i.prize||i.name.slice(0,6))}</span>`).join("")}</div>`:""}
@@ -2043,7 +2099,10 @@ function itemDialog(id,preset){
     else if(r.expected!=null){c.innerHTML=`<div class="hd"><span>売れたらこうなる</span><span>${r.age!=null?"在庫"+r.age+"日":""}</span></div><div class="ln"><span>出品価格</span><b>${yen(+d.listPrice)}</b></div><div class="ln"><span>手数料 ${r.rate}%</span><b>−${yen(Math.floor(+d.listPrice*r.rate/100))}</b></div><div class="ln"><span>送料</span><b>−${yen(n(d.shipCost))}</b></div><div class="ln"><span>原価${an}</span><b>−${yen(r.alloc)}</b></div><div class="tot"><span>見込みの利益</span><b class="${pm(r.expected)}">${sYen(r.expected)}</b></div><div class="meta"><span>利益率 ${pct(+d.listPrice?r.expected/+d.listPrice:null)}</span></div>`;
       if(ft){fl.textContent="見込み";ft.textContent=sYen(r.expected);ft.className=pm(r.expected)}}
     else{c.innerHTML=`<div class="hd"><span>原価</span><span>${r.age!=null?"在庫"+r.age+"日":""}</span></div><div class="ln"><span>原価${an}</span><b>${yen(alloc)}</b></div><div class="tot"><span>利益</span><span class="faint" style="font-size:13px">${status==="kept"?"自分用は利益に入りません":"出品価格を入れると計算します"}</span></div>`;
-      if(ft){fl.textContent="原価";ft.textContent=yen(alloc);ft.className=""}}
+      if(ft){fl.textContent="原価";ft.textContent=yen(alloc);ft.className=""}
+      if(status==="kept"&&d.titleId&&S.titles[d.titleId]){const kc=keptCalc(d.titleId,Object.assign({},d,{id:id||"_new",status:"kept"})),q=kc.E[id||"_new"]||{unit:0,eff:0};
+        c.innerHTML=`<div class="hd"><span>★ COLLECTION</span><span>${esc(kc.t.name)}</span></div><div class="ln"><span>単価（同じくじで按分）</span><b>${yen(q.unit)}</b></div><div class="ln"><span>同じくじの売上で回収</span><b>${pct(kc.recov)}</b></div><div class="tot"><span>実質の仕入れ値</span><b class="${kc.paid||!q.eff?"plus":""}">${kc.paid||!q.eff?"タダ！":yen(q.eff)}</b></div><div class="meta"><span>${kc.paid?"同じくじの売上で元が取れました":"あと "+yen(kc.remaining)+" 売れたらタダになります"}</span></div>`;
+        if(ft){fl.textContent="実質";ft.textContent=kc.paid||!q.eff?"タダ":yen(q.eff);ft.className=kc.paid?"plus":""}}}
   };
   form.addEventListener("input",upd);
   form.querySelector("#i-status").addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(!b||b.disabled)return;status=b.dataset.v;form.querySelectorAll("#i-status [data-v]").forEach(x=>x.setAttribute("aria-pressed",x===b));
@@ -2093,9 +2152,9 @@ function titleDialog(id,preset){
   ${sec("star","teal","当たり1点あたりの仕入れ値",`売るものだけで、${W.cost}を割ります`,`
     <div class="fm" id="t-fm"></div>
     <div class="seg" id="t-mode"><button type="button" data-am="equal" aria-pressed="${t.allocMode!=="price"}" ${ro}>均等に割る</button><button type="button" data-am="price" aria-pressed="${t.allocMode==="price"}" ${ro}>値段の比率で割る</button></div>
-    ${s&&s.its.length?`<div class="tglist">${s.its.slice().sort((a,b)=>(a.prize||"").localeCompare(b.prize||"","ja")).map(i=>{const own=has(i.cost),kept=i.status==="kept";return `<label class="tgrow"><span class="tgl"><input type="checkbox" data-inc="${esc(i.id)}" ${!own&&!kept&&!i.noAlloc?"checked":""} ${own||kept||!S.canWrite?"disabled":""}><i></i></span><span class="nm">${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</span><b class="n" data-per="${esc(i.id)}">${own?yen(+i.cost)+"（個別）":kept?"自分用":""}</b></label>`}).join("")}</div><p class="note">ハズレや自分用はオフに。その分は当たりの仕入れ値に上乗せされます</p>`:""}`)}
+    ${s&&s.its.length?`<div class="tglist">${s.its.slice().sort((a,b)=>(a.prize||"").localeCompare(b.prize||"","ja")).map(i=>{const own=has(i.cost),kept=i.status==="kept";return `<label class="tgrow"><span class="tgl"><input type="checkbox" data-inc="${esc(i.id)}" ${!own&&!kept&&!i.noAlloc?"checked":""} ${own||kept||!S.canWrite?"disabled":""}><i></i></span><span class="nm">${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</span><b class="n" data-per="${esc(i.id)}">${own?yen(+i.cost)+"（個別）":kept?"★ 自分用":""}</b></label>`}).join("")}</div><p class="note">ハズレはオフに。その分は売る当たりの仕入れ値に上乗せされます（★自分用は自動で外れます）</p>`:""}`)}
   ${S.canWrite?sec("list","soft",id?"当たりを追加":W.win,"賞をタップすると行が増えます。売らないものは行の頭に ×",`
-    <div class="cg pzq" id="t-pzq">${W.pz.map(p=>`<button type="button" data-pz="${p}">${p}</button>`).join("")}<button type="button" data-pz="×">× 売らない</button></div>
+    <div class="cg pzq" id="t-pzq">${W.pz.map(p=>`<button type="button" data-pz="${p}">${p}</button>`).join("")}<button type="button" data-pz="★">★ 自分用</button><button type="button" data-pz="×">× ハズレ</button></div>
     <textarea id="t-prizes" class="ta" rows="4" placeholder="A賞 孫悟空フィギュア&#10;C賞 ベジータフィギュア&#10;×G賞 ラバーストラップ" aria-label="景品を1行に1つ"></textarea>`,'id="t-winsec"'):""}
   ${sec("tag","ink","出品","当たりをどこで売る？ 送り方は？",`
     ${chipF("platform","販売先",C.platforms.map(p=>[p.name,`${esc(p.name)}<small>${p.rate}%</small>`]),t.platform||C.platforms[0]?.name||"",ro,true)}
@@ -2121,11 +2180,13 @@ function titleDialog(id,preset){
     const tid=id||"_t",bulk=num("#t-bulk"),unit=num("#t-unit"),dr=num("#t-draws");
     const T2=Object.assign({},S.titles,{[tid]:Object.assign({},t,{id:tid,bulkCost:bulk,allocMode:amode})});
     const its=(s?s.its:[]).map(i=>{const cb=form.querySelector(`[data-inc="${i.id}"]`);return Object.assign({},i,{noAlloc:cb?!cb.checked:i.noAlloc})});
-    newLines().forEach((ln,k)=>its.push({id:"_n"+k,titleId:tid,cost:null,status:"stock",noAlloc:/^[×xX✕]/.test(ln)}));
+    newLines().forEach((ln,k)=>its.push({id:"_n"+k,titleId:tid,cost:null,status:/^[★☆]/.test(ln)?"kept":"stock",noAlloc:/^[×xX✕]/.test(ln)}));
+    const nk=its.filter(i=>i.status==="kept"&&!has(i.cost)).length;
     const M=allocMap(its,T2),tg=(M.grp[tid]||[]).length,per=tg&&bulk?bulk/tg:null;
     its.forEach(i=>{const el=form.querySelector(`[data-per="${i.id}"]`);if(el&&!has(i.cost)&&i.status!=="kept"){el.textContent=isTarget(i,T2)?yen(M.A[i.id]):"0円";el.className="n"+(isTarget(i,T2)?"":" off")}});
     form.querySelector("#t-fm").innerHTML=(unit&&dr?`<div class="row1"><span class="v"><small>1回</small>${yen(unit)}</span><span class="op">×</span><span class="v"><small>回数</small>${dr}回</span><span class="op">=</span><span class="v"><small>${W.cost}</small>${yen(bulk||unit*dr)}</span></div>`:`<div class="row1"><span class="v"><small>${W.cost}</small>${bulk?yen(bulk):"未入力"}</span></div>`)+
       `<div class="row1"><span class="op">÷</span><span class="v"><small>売る当たり</small>${tg}点</span><span class="op">=</span><span class="v hl"><small>1点あたり</small>${tg&&bulk?(M.mode[tid]==="price"?"値段で配分":yen(per)):"—"}</span></div>`+
+      (nk&&bulk?`<div class="row1 kp"><span class="v"><small>★ 自分用</small>${nk}点</span><span class="op">→</span><span class="v"><small>単価 ${W.cost}÷${tg+nk}点</small>${yen(bulk/(tg+nk))}</span></div><p class="note" style="text-align:center;margin:0">自分用は売れた当たりの売上で回収されると、仕入れ値が自動でタダになります</p>`:"")+
       (amode==="price"&&tg&&M.mode[tid]!=="price"?`<p class="note" style="text-align:center;margin:0">全ての当たりに出品価格か売れた価格が入ると、値段の比率で割ります</p>`:"");
     const ft=$("#t-foot");if(ft)ft.textContent=tg&&bulk?(M.mode[tid]==="price"?"値段で配分":yen(per)):"—";
   };
@@ -2140,7 +2201,7 @@ function titleDialog(id,preset){
     form.querySelector("#t-prices").innerHTML=W.prices.map(v=>`<button type="button" data-unitp="${v}">¥${v.toLocaleString("ja-JP")}</button>`).join("");
     form.querySelector("#t-counts").innerHTML=[5,10,20,30].map(v=>`<button type="button" data-draws="${v}">${v}${W.u}</button>`).join("");
     const ws=form.querySelector("#t-winsec");if(ws&&!id)ws.querySelector(".fsh b").textContent=W.win;
-    const pq=form.querySelector("#t-pzq");if(pq)pq.innerHTML=W.pz.map(p=>`<button type="button" data-pz="${p}">${p}</button>`).join("")+`<button type="button" data-pz="×">× 売らない</button>`;
+    const pq=form.querySelector("#t-pzq");if(pq)pq.innerHTML=W.pz.map(p=>`<button type="button" data-pz="${p}">${p}</button>`).join("")+`<button type="button" data-pz="★">★ 自分用</button><button type="button" data-pz="×">× ハズレ</button>`;
     const pd=form.querySelector("#t-pdate");if(pd)pd.closest(".df").querySelector(".lbl").textContent=W.day;
     const ss=[...form.querySelectorAll(".fs .fsh small")].find(x=>x.textContent.startsWith("売るものだけで"));if(ss)ss.textContent=`売るものだけで、${W.cost}を割ります`;
   };
@@ -2150,7 +2211,7 @@ function titleDialog(id,preset){
     const st=e.target.closest("[data-step]");if(st){const v=Math.max(0,(num("#t-draws")||0)+(+st.dataset.step));form.querySelector("#t-draws").value=v||"";autoBulk();calcT();return}
     const up=e.target.closest("[data-unitp]");if(up){form.querySelector("#t-unit").value=up.dataset.unitp;autoBulk();calcT();return}
     const dq=e.target.closest("[data-draws]");if(dq){form.querySelector("#t-draws").value=dq.dataset.draws;autoBulk();calcT();return}
-    const pz=e.target.closest("[data-pz]");if(pz){const ta=form.querySelector("#t-prizes");let v=ta.value;if(pz.dataset.pz==="×"){const ls=v.split("\n");const k=ls.length-1;if(!/^×/.test(ls[k]))ls[k]="×"+ls[k];ta.value=ls.join("\n")}else{ta.value=(v&&!v.endsWith("\n")?v+"\n":v)+pz.dataset.pz+" "}ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);calcT();return}
+    const pz=e.target.closest("[data-pz]");if(pz){const ta=form.querySelector("#t-prizes");let v=ta.value;if(pz.dataset.pz==="×"||pz.dataset.pz==="★"){const mk=pz.dataset.pz,ls=v.replace(/\s+$/,"").split("\n");const k=ls.length-1;const bare=ls[k].replace(/^[×xX✕★☆]\s*/,"");ls[k]=ls[k].startsWith(mk)?bare:mk+bare;ta.value=ls.join("\n")}else{ta.value=(v&&!v.endsWith("\n")?v+"\n":v)+pz.dataset.pz+" "}ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);calcT();return}
   });
   form.querySelector("#t-mode").addEventListener("click",e=>{const b=e.target.closest("[data-am]");if(!b||b.disabled)return;amode=b.dataset.am;form.querySelectorAll("#t-mode button").forEach(x=>x.setAttribute("aria-pressed",x===b));calcT()});
   const fi=$("#t-img");
@@ -2172,8 +2233,8 @@ function titleDialog(id,preset){
     if(s&&ap&&ap.checked){const rate=(cfg().platforms.find(p=>p.name===d.platform)||{}).rate;for(const i of s.its){if(SOLD(i.status)||i.status==="kept")continue;const ni=Object.assign({},i,{platform:d.platform,ship:d.ship,shipCost:d.shipCost,updatedAt:Date.now()});if(rate!=null)ni.feeRate=rate;await put("items",ni);i.platform=ni.platform}}
     if(s)for(const i of s.its){const cb=form.querySelector(`[data-inc="${i.id}"]`);if(cb&&!cb.disabled&&(!cb.checked)!==!!i.noAlloc)await put("items",Object.assign({},i,{noAlloc:!cb.checked,updatedAt:Date.now()}))}
     const lines=newLines();
-    for(let ln of lines){const off=/^[×xX✕]/.test(ln);ln=ln.replace(/^[×xX✕]\s*/,"");if(!ln)continue;const m=ln.match(/^((?:[A-Za-zＡ-Ｚａ-ｚ]+|LAST|ラストワン|ラスト|ダブルチャンス)賞|No\.?\s*\d+|シークレット|SAR|SEC|SR|UR|AR|RR|HR|パラレル)\s*(.*)$/i);
-      await put("items",{id:uid("i"),name:m?(m[2]||m[1]):ln,prize:m?m[1]:"",titleId:d.id,cat1:d.cat1,cat2:d.cat2,cost:null,pDate:d.pDate,card:d.card,buyer:d.buyer,status:"stock",noAlloc:off,platform:d.platform||"",feeRate:(cfg().platforms.find(p=>p.name===d.platform)||{}).rate??null,ship:d.ship||"",shipCost:d.shipCost,updatedAt:Date.now(),createdAt:Date.now()})}
+    for(let ln of lines){const off=/^[×xX✕]/.test(ln),keep=/^[★☆]/.test(ln);ln=ln.replace(/^[×xX✕★☆]\s*/,"");if(!ln)continue;const m=ln.match(/^((?:[A-Za-zＡ-Ｚａ-ｚ]+|LAST|ラストワン|ラスト|ダブルチャンス)賞|No\.?\s*\d+|シークレット|SAR|SEC|SR|UR|AR|RR|HR|パラレル)\s*(.*)$/i);
+      await put("items",{id:uid("i"),name:m?(m[2]||m[1]):ln,prize:m?m[1]:"",titleId:d.id,cat1:d.cat1,cat2:d.cat2,cost:null,pDate:d.pDate,card:d.card,buyer:d.buyer,status:keep?"kept":"stock",noAlloc:off&&!keep,platform:d.platform||"",feeRate:(cfg().platforms.find(p=>p.name===d.platform)||{}).rate??null,ship:d.ship||"",shipCost:d.shipCost,updatedAt:Date.now(),createdAt:Date.now()})}
     dlg.close();toast(lines.length?`保存しました（景品${lines.length}点）`:"保存しました")});
   calcT();
 }
