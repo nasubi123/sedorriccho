@@ -1108,6 +1108,18 @@ input[type=number]{-moz-appearance:textfield}
 .sheet > header .trash{background:none;padding:5px 2px;display:inline-flex;align-items:center;justify-content:flex-end;gap:4px;color:var(--red);font-weight:800;font-size:13px;white-space:nowrap;justify-self:end}
 .sheet > header .trash svg{width:17px;height:17px}
 .sheet > header .trash.armed{background:var(--red);color:#fff;border-radius:99px;padding:5px 10px;animation:pop2 .3s ease both}
+.multi-h{font-size:10px;font-weight:800;color:var(--teal-ink);background:var(--teal-bg,#e3f6f8);border-radius:99px;padding:1px 7px;margin-left:6px;vertical-align:1px}
+.cg[data-multi] button[aria-checked="true"]{padding-left:9px}
+.cg[data-multi] button[aria-checked="true"]::before{content:"";width:14px;height:14px;border-radius:50%;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2313181b' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center/10px no-repeat}
+.sprow{grid-template-columns:1fr!important;gap:6px!important}
+.sptop{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px}
+.spc.by-buyer i{border-radius:50%;width:18px;height:18px}
+.spwho{display:flex;flex-wrap:wrap;gap:5px;padding-left:30px}
+.spwho button{font-size:11.5px;font-weight:800;padding:5px 11px;border-radius:99px;background:#fff;color:var(--ink2);box-shadow:inset 0 0 0 1px #dfe5e8}
+.spwho button[aria-pressed="true"]{background:hsl(var(--h) 60% 45%);color:#fff;box-shadow:none}
+.spamt{display:flex;align-items:center;gap:2px;background:#fff;border-radius:11px;padding:0 10px;box-shadow:inset 0 0 0 1px #dfe5e8;height:36px;width:118px}
+.spamt i{font-style:normal;color:var(--ink3);font-weight:800}
+.spamt input{border:0;outline:0;background:none;width:100%;font:800 15px var(--num);text-align:right;color:var(--ink)}
 @media (max-width:559px){
   dialog{width:100%;max-width:100%;height:calc(100dvh - env(safe-area-inset-top,0px) - 10px);max-height:none;margin:auto 0 0;border-radius:16px 16px 0 0}
   dialog.short{height:auto;inset:auto 0 0 0;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 10px)}
@@ -1548,20 +1560,21 @@ function calcItem(i,alloc,C){
   return {alloc,rate,sale,fee,ship,net,profit,margin:sold&&sale?profit/sale:null,recov:sold&&alloc?net/alloc:null,expNet,expected,age,sellDays};
 }
 const isStale=(i,r,C)=>i.status==="stock"&&r.age!=null&&r.age>=(C||cfg()).staleDays;
-function titlePays(t){
-  const bulk=n(t.bulkCost),dr=n(t.draws),ps=(t.pays||[]).filter(p=>p&&+p.draws>0);
-  const main={card:t.card||"未設定",buyer:t.buyer||"未設定"};
-  if(!ps.length||!dr)return [Object.assign({amount:bulk,draws:dr},main)];
-  let used=0,amt=0;const out=ps.map(p=>{const a=Math.round(bulk*p.draws/dr);used+=+p.draws;amt+=a;return {card:p.card||"未設定",buyer:p.buyer||main.buyer,amount:a,draws:+p.draws}});
-  if(bulk-amt>0)out.push(Object.assign({amount:bulk-amt,draws:Math.max(0,dr-used)},main));
+function splitPays(rec,total,draws){
+  total=n(total);draws=n(draws);const main={card:rec.card||"未設定",buyer:rec.buyer||"未設定"};
+  const ps=(rec.pays||[]).filter(p=>p&&(+p.draws>0||+p.amount>0));
+  if(!ps.length||!total)return [Object.assign({amount:total,draws},main)];
+  let amt=0,used=0;const out=ps.map(p=>{const a=+p.amount>0?Math.round(+p.amount):(draws?Math.round(total*p.draws/draws):0);amt+=a;used+=+p.draws||0;return {card:p.card||main.card,buyer:p.buyer||main.buyer,amount:a,draws:+p.draws||0}});
+  if(total-amt>0){const m=out.find(o=>o.card===main.card&&o.buyer===main.buyer);if(m){m.amount+=total-amt;m.draws+=Math.max(0,draws-used)}else out.push(Object.assign({amount:total-amt,draws:Math.max(0,draws-used)},main))}
   return out;
 }
-const paysText=t=>{const ps=titlePays(t);return ps.length>1?ps.map(p=>`${p.card}${p.draws?p.draws+"回":""}`).join("・"):""};
+const titlePays=t=>splitPays(t,t.bulkCost,t.draws);
+const paysText=(t,ps)=>{ps=ps||titlePays(t);return ps.length>1?ps.map(p=>`${p.card}${p.draws?p.draws+"回":"¥"+p.amount.toLocaleString("ja-JP")}${new Set(ps.map(x=>x.buyer)).size>1?"("+p.buyer+")":""}`).join("・"):""};
 function purchases(withExp){
   const out=[];
-  Object.values(S.items).forEach(i=>{if(has(i.cost)&&+i.cost)out.push({date:i.pDate||"",card:i.card||"未設定",buyer:i.buyer||"未設定",amount:+i.cost,label:(i.prize?i.prize+" ":"")+i.name,kind:"仕入"})});
+  Object.values(S.items).forEach(i=>{if(has(i.cost)&&+i.cost)splitPays(i,i.cost,0).forEach(p=>{if(p.amount)out.push({date:i.pDate||"",card:p.card,buyer:p.buyer,amount:p.amount,label:(i.prize?i.prize+" ":"")+i.name,kind:"仕入"})})});
   Object.values(S.titles).forEach(t=>{if(has(t.bulkCost)&&+t.bulkCost){const ps=titlePays(t);ps.forEach(p=>{if(p.amount)out.push({date:t.pDate||"",card:p.card,buyer:p.buyer,amount:p.amount,label:t.name+(ps.length>1&&p.draws?`（${p.draws}回分）`:""),kind:"仕入"})})}});
-  if(withExp)Object.values(S.exps).forEach(e=>out.push({date:e.date||"",card:e.card||"未設定",buyer:e.buyer||"未設定",amount:n(e.amount),label:e.cat+(e.note?"・"+e.note:""),kind:"経費"}));
+  if(withExp)Object.values(S.exps).forEach(e=>splitPays(e,e.amount,0).forEach(p=>out.push({date:e.date||"",card:p.card,buyer:p.buyer,amount:p.amount,label:e.cat+(e.note?"・"+e.note:""),kind:"経費"})));
   return out.sort((a,b)=>b.date.localeCompare(a.date));
 }
 function events(D){
@@ -1569,7 +1582,7 @@ function events(D){
   Object.values(S.titles).forEach(t=>{if(t.pDate)E.push({date:t.pDate,type:"buy",label:t.name,sub:paysText(t)?[t.draws?t.draws+"回":"",paysText(t)].filter(Boolean).join("｜"):[t.draws?t.draws+"回":"",t.card,t.buyer].filter(Boolean).join("・"),amount:n(t.bulkCost),ref:["title",t.id],img:imgSrc(t),cat:t.cat1})});
   Object.values(S.items).forEach(i=>{
     const t=S.titles[i.titleId];
-    if(i.pDate&&(has(i.cost)||!t))E.push({date:i.pDate,type:"buy",label:(i.prize?i.prize+" ":"")+i.name,sub:[i.card,i.buyer].filter(Boolean).join("・"),amount:n(i.cost),ref:["item",i.id],img:imgSrc(t),cat:i.cat1});
+    if(i.pDate&&(has(i.cost)||!t))E.push({date:i.pDate,type:"buy",label:(i.prize?i.prize+" ":"")+i.name,sub:paysText(i,splitPays(i,i.cost,0))||[i.card,i.buyer].filter(Boolean).join("・"),amount:n(i.cost),ref:["item",i.id],img:imgSrc(t),cat:i.cat1});
     if(SOLD(i.status)&&i.sDate){const r=D.R[i.id];E.push({date:i.sDate,type:"sell",label:(i.prize?i.prize+" ":"")+i.name,sub:i.platform||"",amount:r.sale,profit:r.profit,ref:["item",i.id],img:imgSrc(t),cat:i.cat1})}
   });
   Object.values(S.exps).forEach(e=>{if(e.date)E.push({date:e.date,type:"exp",label:e.cat||"経費",sub:[e.note,e.card].filter(Boolean).join("・"),amount:n(e.amount),ref:["exp",e.id]})});
@@ -2055,7 +2068,7 @@ function vSettings(){
   ${S.canWrite?`<button class="btn pri block" type="button" data-act="save-settings">設定を保存</button>`:""}
   <div class="grp"><div class="gh">バックアップ</div><div class="box"><button type="button" class="act" data-act="backup">バックアップを書き出す</button>${S.canWrite?`<label class="act" style="cursor:pointer;position:relative">バックアップから読み込む<input type="file" id="bk-in" accept=".json,application/json" style="position:absolute;inset:0;opacity:0"></label>`:""}</div><p class="note" style="padding:0 4px">${IS_APP?"データはこのiPhoneの中に保存されています。機種変更の前や、ときどきバックアップを書き出しておくと安心です":"独立版アプリにデータを移すときは、ここで書き出したファイルを独立版で読み込みます"}</p></div>
   <div class="grp"><div class="gh">データ</div><div class="box"><button type="button" class="act" data-act="export-all">全商品をCSVに書き出す</button>${sn&&S.canWrite?`<button type="button" class="act del" data-act="del-sample">サンプル${sn}件を削除</button>`:""}</div></div>
-  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.13-7</p>
+  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.13-8</p>
   </div>`;
 }
 
@@ -2098,6 +2111,7 @@ const setChip=(f,name,v)=>{const g=f.querySelector(`.cg[data-name="${name}"]`);i
 function markDq(f){f.querySelectorAll(".dq").forEach(q=>{const inp=q.querySelector("input");q.querySelectorAll("button").forEach(b=>{const d=new Date();d.setDate(d.getDate()+(+b.dataset.dv));b.setAttribute("aria-pressed",inp.value===dstr(d))})})}
 dlg.addEventListener("click",e=>{
   const b=e.target.closest(".cg button");
+  if(b&&!b.disabled&&b.parentElement.dataset.multi){const g=b.parentElement,on=b.getAttribute("aria-checked")==="true";b.setAttribute("aria-checked",String(!on));g.dispatchEvent(new CustomEvent("chip",{bubbles:true,detail:{name:g.dataset.name,v:b.dataset.v}}));return}
   if(b&&!b.disabled){const g=b.parentElement,on=b.getAttribute("aria-checked")==="true";g.querySelectorAll("button").forEach(x=>x.setAttribute("aria-checked","false"));if(!(on&&g.dataset.opt))b.setAttribute("aria-checked","true");g.dispatchEvent(new CustomEvent("chip",{bubbles:true,detail:{name:g.dataset.name,v:on&&g.dataset.opt?"":b.dataset.v}}));return}
   const q=e.target.closest(".dq button");
   if(q&&!q.disabled){const inp=dlg.querySelector("#"+q.dataset.dq);const d=new Date();d.setDate(d.getDate()+(+q.dataset.dv));inp.value=dstr(d);inp.dispatchEvent(new Event("input",{bubbles:true}));markDq(dlg);return}
@@ -2110,6 +2124,57 @@ function openSheet(title,body,save,id,short,foot){
   markDq(dlg);
   const dd=S.canWrite&&dlg.querySelector(".body [data-del-item],.body [data-del-title],.body [data-del-exp]"),sp=dlg.querySelector(".sheet>header>span");
   if(dd&&sp){const b=document.createElement("button");b.type="button";b.className="trash";["delItem","delTitle","delExp"].forEach(k=>{if(dd.dataset[k])b.dataset[k]=dd.dataset[k]});b.setAttribute("aria-label","削除");b.innerHTML=I('<path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/>',2.2)+"<span>削除</span>";sp.replaceWith(b)}
+}
+
+/* ---------- 支払い（複数OK） ---------- */
+const chipVals=(f,name)=>[...f.querySelectorAll(`.cg[data-name="${name}"] [aria-checked="true"]`)].map(b=>b.dataset.v);
+function payHTML(C,rec,ro){
+  const ps=rec.pays||[],uq=a=>[...new Set(a.filter(Boolean))];
+  const cards=uq([rec.card,...ps.map(p=>p.card)]),ppl=uq([rec.buyer,...ps.map(p=>p.buyer)]);
+  const m=(name,label,list,sel)=>{const arr=uq(list.concat(sel));return `<div class="cf"><span class="lbl">${label}<small class="multi-h">複数OK</small></span><div class="cg" data-name="${name}" data-multi="1" role="group" aria-label="${label}">${arr.map(v=>`<button type="button" role="checkbox" data-v="${esc(v)}" aria-checked="${sel.includes(v)}" ${ro||""}>${esc(v)}</button>`).join("")}</div></div>`};
+  return m("card","支払い方法",C.cards,cards)+m("buyer","払った人",C.people,ppl)+`<div class="split" data-pay></div>`;
+}
+function payAttach(form,rec,o){
+  const el=form.querySelector("[data-pay]");let rows=(rec.pays||[]).map(p=>Object.assign({},p));
+  const mode=()=>o.draws&&o.draws()>0?"draws":"amount";
+  const layout=()=>{const cards=chipVals(form,"card"),ppl=chipVals(form,"buyer");
+    if(cards.length>1)return {cards,ppl,L:cards.map(c=>({card:c,by:"card"}))};
+    if(ppl.length>1)return {cards,ppl,L:ppl.map(b=>({card:cards[0]||"",buyer:b,by:"buyer"}))};
+    return {cards,ppl,L:[]}};
+  const find=l=>l.by==="card"?rows.find(r=>r.card===l.card):rows.find(r=>r.buyer===l.buyer&&(r.card||"")===(l.card||""));
+  const ensure=l=>{let r=find(l);if(!r){r={card:l.card,buyer:l.buyer||"",draws:0,amount:null};rows.push(r)}if(l.by==="buyer")r.card=l.card;return r};
+  const who=(l,r,ppl)=>l.by==="buyer"?l.buyer:(r&&ppl.includes(r.buyer)?r.buyer:ppl[0]||"");
+  const raw=()=>{const {L,ppl}=layout(),md=mode();return L.map(l=>{const r=find(l)||{};return md==="draws"?{card:l.card,buyer:who(l,r,ppl),draws:+r.draws||0}:{card:l.card,buyer:who(l,r,ppl),amount:+r.amount||0}})};
+  const used=()=>raw().reduce((a,p)=>a+(mode()==="draws"?p.draws:p.amount),0);
+  const tot=()=>mode()==="draws"?o.draws():o.total();
+  const restRow=()=>{const R0=raw(),e=R0.filter(p=>!(p.draws||p.amount));return e.length===1&&tot()-used()>0?e[0]:null};
+  const value=()=>{const k=mode()==="draws"?"draws":"amount",rr=restRow(),rest=tot()-used();return raw().map(p=>rr&&p.card===rr.card&&p.buyer===rr.buyer?Object.assign({},p,{[k]:rest}):p).filter(p=>(p.draws||p.amount)>0)};
+  const summary=()=>{const sm=el.querySelector(".spsum"),bar=el.querySelector(".spbar");if(!sm)return;const md=mode(),tot=md==="draws"?o.draws():o.total(),u=used(),rest=tot-u,f=v=>md==="draws"?v+"回":yen(v);
+    const {cards,ppl}=layout(),rr=restRow(),mainL=rr?`${rr.card}${ppl.length>1?"・"+rr.buyer:""}`:`${cards[0]||"未設定"}${ppl.length>1?"・"+(ppl[0]||""):""}`;
+    bar.className="spbar "+(rest<0?"over":rest===0&&tot?"ok":"");bar.firstElementChild.style.width=(tot?Math.min(100,u/tot*100):0)+"%";
+    const tt=tot;sm.innerHTML=!tt?(md==="draws"?"回数を入れると分けられます":"金額を入れると分けられます"):rest<0?`<b>${f(-rest)}</b>多すぎます（合計${f(tot)}）`:rest===0?`ぴったり <b>${f(tot)}</b>`:`${f(tot)}中 <b>${f(u)}</b>・残り${f(rest)}は「${esc(mainL)}」`;
+    if(md==="draws"){const per=o.total()&&o.draws()?o.total()/o.draws():0;el.querySelectorAll(".sprow").forEach(x=>{const r=find(JSON.parse(x.dataset.l));const sm2=x.querySelector(".spc small");if(sm2)sm2.textContent=r&&+r.draws&&per?yen(Math.round(per*r.draws)):""})}};
+  const render=()=>{if(!el)return;const {L,ppl}=layout(),md=mode();
+    if(!L.length){el.innerHTML="";return}
+    el.innerHTML=`<div class="sph"><b>${L[0].by==="card"?"どのカードで、誰が払った？":"誰がいくら払った？"}</b></div><div class="spbar"><i></i></div><div class="spsum"></div>
+    <div class="sprows">${L.map(l=>{const r=find(l)||{},w=who(l,r,ppl),lab=l.by==="card"?l.card:l.buyer,h=hueOf(l.by==="card"?l.card:l.buyer);
+      return `<div class="sprow ${(md==="draws"?+r.draws:+r.amount)>0?"on":""}" data-l='${esc(JSON.stringify(l))}' style="--h:${h}"><div class="sptop"><span class="spc by-${l.by}"><i></i><span><b>${esc(lab)}</b><small></small></span></span>
+      ${md==="draws"?`<span class="stp"><button type="button" data-st="-1" aria-label="減らす">−</button><b>${+r.draws||0}<small>回</small></b><button type="button" data-st="1" aria-label="増やす">＋</button></span>`:`<label class="spamt"><i>¥</i><input type="number" inputmode="numeric" data-amt value="${+r.amount||""}" placeholder="0" aria-label="${esc(lab)}の金額"></label>`}</div>
+      ${l.by==="card"&&ppl.length>1?`<div class="spwho">${ppl.map(p=>`<button type="button" data-pw="${esc(p)}" aria-pressed="${p===w}">${esc(p)}</button>`).join("")}</div>`:""}</div>`}).join("")}</div>`;
+    summary()};
+  el.addEventListener("click",e=>{const row=e.target.closest(".sprow");if(!row)return;const l=JSON.parse(row.dataset.l);
+    const st=e.target.closest("[data-st]");if(st){const r=ensure(l),tot=o.draws(),others=raw().reduce((a,p)=>a+(p.card===l.card&&(l.by==="card"||p.buyer===l.buyer)?0:p.draws),0);let v=Math.max(0,(+r.draws||0)+(+st.dataset.st));if(tot)v=Math.min(v,Math.max(0,tot-others));r.draws=v;render();return}
+    const pw=e.target.closest("[data-pw]");if(pw){ensure(l).buyer=pw.dataset.pw;render();return}});
+  el.addEventListener("input",e=>{const inp=e.target.closest("[data-amt]");if(!inp)return;const row=inp.closest(".sprow"),l=JSON.parse(row.dataset.l);ensure(l).amount=inp.value===""?null:+inp.value;row.classList.toggle("on",+inp.value>0);summary()});
+  form.addEventListener("chip",e=>{if(e.detail.name==="card"||e.detail.name==="buyer")render()});
+  form.addEventListener("input",e=>{if(!el.contains(e.target))setTimeout(()=>{const md=el.dataset.md;if(md!==mode()){el.dataset.md=mode();render()}else summary()},0)});
+  form.addEventListener("change",e=>{if(!el.contains(e.target))setTimeout(render,0)});
+  form.addEventListener("click",e=>{if(e.target.closest("[data-draws],[data-unitp],[data-add-amt]"))setTimeout(()=>{el.dataset.md=mode();render()},0)});
+  el.dataset.md=mode();render();
+  return {
+    read(){const {cards,ppl}=layout();return {card:cards[0]||"",buyer:ppl[0]||"",pays:value()}},
+    check(){if(!layout().L.length)return "";const md=mode(),tot=md==="draws"?o.draws():o.total();return tot&&used()>tot?(md==="draws"?"分けた回数が合計回数を超えています":"分けた金額が合計を超えています"):""},
+    render};
 }
 
 /* ---------- 商品 ---------- */
@@ -2135,8 +2200,7 @@ function itemDialog(id,preset){
     ${money("i-cost","仕入額",i.cost,"くじ代から自動で計算",false,ro)}
     <label class="tgrow" id="i-incrow"><span class="tgl"><input type="checkbox" id="i-inc" ${i.noAlloc?"":"checked"} ${ro}><i></i></span><span>くじ代をこの商品に割り当てる</span></label>
     ${dateF("i-pdate","仕入日",i.pDate,ro)}
-    ${chipF("card","支払い方法",C.cards,i.card,ro,true)}
-    ${chipF("buyer","払った人",C.people,i.buyer,ro,true)}`)}
+    ${payHTML(C,i,ro)}`)}
   ${sec("tag","ink","売るとき","売る場所と、売りたい値段（あとからでOK）",`
     ${chipF("platform","販売先",C.platforms.map(p=>[p.name,`${esc(p.name)}<small>${p.rate}%</small>`]),i.platform,ro,true)}
     <div class="mrow">${money("i-list","出品価格",i.listPrice,"0",false,ro)}${S.canWrite?`<button type="button" class="mini-btn" id="i-cut">10%下げる</button>`:""}</div>
@@ -2156,7 +2220,8 @@ function itemDialog(id,preset){
   openSheet(id?"商品":"商品を追加",body,"保存","item-form",false,foot);
   const form=$("#item-form");
   const g=s=>form.querySelector(s).value.trim(),num=s=>{const v=g(s);return v===""?null:+v},setv=(s,v)=>{form.querySelector(s).value=v};
-  const read=()=>Object.assign({},i,{name:g("#i-name"),titleId:g("#i-title")||null,prize:g("#i-prize"),cat1:chipVal(form,"cat1"),cat2:g("#i-cat2"),cost:num("#i-cost"),pDate:g("#i-pdate"),card:chipVal(form,"card"),buyer:chipVal(form,"buyer"),status,platform:chipVal(form,"platform"),listPrice:num("#i-list"),salePrice:num("#i-sale"),sDate:g("#i-sdate"),feeRate:num("#i-rate"),feeAmount:num("#i-feeamt"),ship:chipVal(form,"ship"),shipCost:num("#i-shipcost"),note:g("#i-note"),noAlloc:!form.querySelector("#i-inc").checked});
+  const pay=payAttach(form,i,{total:()=>num("#i-cost")||0});
+  const read=()=>Object.assign({},i,{name:g("#i-name"),titleId:g("#i-title")||null,prize:g("#i-prize"),cat1:chipVal(form,"cat1"),cat2:g("#i-cat2"),cost:num("#i-cost"),pDate:g("#i-pdate"),...(pay?pay.read():{card:i.card,buyer:i.buyer,pays:i.pays||[]}),status,platform:chipVal(form,"platform"),listPrice:num("#i-list"),salePrice:num("#i-sale"),sDate:g("#i-sdate"),feeRate:num("#i-rate"),feeAmount:num("#i-feeamt"),ship:chipVal(form,"ship"),shipCost:num("#i-shipcost"),note:g("#i-note"),noAlloc:!form.querySelector("#i-inc").checked});
   const upd=()=>{
     const d=read(),t=S.titles[d.titleId],tmpId=id||"_new";
     form.querySelector("#i-incrow").hidden=!(t&&has(t.bulkCost)&&!has(d.cost)&&status!=="kept");
@@ -2192,6 +2257,7 @@ function itemDialog(id,preset){
   form.addEventListener("change",e=>{if(e.target.id==="i-title"){const x=S.titles[e.target.value];if(x){if(x.cat1)setChip(form,"cat1",x.cat1);if(x.cat2&&!g("#i-cat2"))setv("#i-cat2",x.cat2);if(x.card)setChip(form,"card",x.card);if(x.buyer)setChip(form,"buyer",x.buyer);if(x.pDate)setv("#i-pdate",x.pDate);markDq(form)}}upd()});
   form.addEventListener("submit",async e=>{e.preventDefault();
     const d=read();if(!d.name){form.querySelector("#i-name").focus();toast("商品名を入れてください");return}
+    const pe=pay.check();if(pe){toast(pe);form.querySelector("[data-pay]").scrollIntoView({block:"center",behavior:"smooth"});return}
     if(SOLD(status)&&!has(d.salePrice)){form.querySelector("#i-sale").focus();toast("売れた価格を入れてください");return}
     if(has(d.listPrice)&&+d.listPrice!==+(i.listPrice??NaN)){d.priceLog=(i.priceLog||[]).concat([{d:TD,p:+d.listPrice}]).slice(-20)}
     d.id=id||uid("i");d.updatedAt=Date.now();if(!id)d.createdAt=Date.now();
@@ -2240,9 +2306,7 @@ function titleDialog(id,preset){
     <p class="note">ここで決めた販売先と送料は、このタイトルで登録する景品に最初から入ります</p>`)}
   ${sec("cart","teal","支払い","いつ、何で、誰が払った？",`
     ${dateF("t-pdate",W.day,t.pDate,ro)}
-    ${chipF("card","支払い方法",C.cards,t.card,ro,true)}
-    ${chipF("buyer","払った人",C.people,t.buyer,ro,true)}
-    <div class="split" id="t-split"></div>`)}
+    ${payHTML(C,t,ro)}`)}
   ${s&&s.its.length?`<div class="grp"><div class="gh">このタイトルの商品</div><div class="cards" style="background:#fff;border-radius:18px;padding:0 14px">${s.its.sort((a,b)=>(a.prize||"").localeCompare(b.prize||"","ja")).map(i=>itemCard(i,D,C)).join("")}</div></div>`:""}
   ${sec("pen","soft","メモ","",`<textarea id="t-note" class="ta" rows="2" aria-label="メモ" ${ro}>${esc(t.note)}</textarea><label class="mf sm"><span class="lbl">中分類（任意）</span><input id="t-cat2" class="mini-in" value="${esc(t.cat2)}" ${ro}></label>`)}
   ${id&&S.canWrite?`<div class="box"><button type="button" class="act" data-add-to-title="${esc(id)}">このタイトルに商品を1点追加</button><button type="button" class="act del" data-del-title="${esc(id)}">このタイトルを削除（景品もすべて消えます）</button></div>`:""}`;
@@ -2269,27 +2333,7 @@ function titleDialog(id,preset){
   };
   form.addEventListener("input",e=>{if(e.target.id==="t-bulk")bulkTouched=g("#t-bulk")!=="";if(e.target.id==="t-unit"||e.target.id==="t-draws")autoBulk();calcT()});
   form.addEventListener("change",calcT);
-  let pays=(t.pays||[]).map(p=>Object.assign({},p)),splitOn=pays.some(p=>+p.draws>0);
-  const renderSplit=()=>{
-    const el=form.querySelector("#t-split");if(!el)return;
-    if(!splitOn){el.innerHTML=S.canWrite?`<button type="button" class="splitbtn" data-sp="on">${I(IC.plus||'<path d="M12 5v14M5 12h14"/>',2.4)}カードごとに回数を分ける</button>`:"";return}
-    const dr=num("#t-draws"),bulk=num("#t-bulk"),per=dr&&bulk?bulk/dr:0,mb=chipVal(form,"buyer")||C.people[0]||"自分",mc=chipVal(form,"card");
-    const cards=C.cards.slice();pays.forEach(p=>{if(p.card&&!cards.includes(p.card))cards.push(p.card)});
-    const get=c=>pays.find(p=>p.card===c)||{card:c,draws:0,buyer:""};
-    const used=pays.reduce((a,p)=>a+(+p.draws||0),0),rest=dr-used;
-    el.innerHTML=`<div class="sph"><b>回数を分ける</b>${S.canWrite?`<button type="button" class="link" data-sp="off">やめる</button>`:""}</div>
-    ${dr?`<div class="spbar ${rest<0?"over":rest===0?"ok":""}"><i style="width:${Math.min(100,used/dr*100)}%"></i></div><div class="spsum">${rest<0?`<b>${-rest}回</b>多すぎます（合計${dr}回）`:rest===0?`ぴったり <b>${dr}回</b>`:`${dr}回中 <b>${used}回</b>・残り${rest}回は「${esc(mc||"未設定")}」`}</div>`:`<p class="note">上で回数を入れると、カードごとに分けられます</p>`}
-    <div class="sprows">${cards.map(c=>{const p=get(c),k=+p.draws||0,b=p.buyer||mb;return `<div class="sprow ${k?"on":""}" data-card="${esc(c)}" style="--h:${hueOf(c)}"><span class="spc"><i></i><span><b>${esc(c)}</b><small>${k&&per?yen(Math.round(per*k)):""}</small></span></span><button type="button" class="spb" data-who="${esc(c)}" ${ro||""} aria-label="払った人">${esc(b)}</button><span class="stp"><button type="button" data-st="-1" ${ro||""} aria-label="減らす">−</button><b>${k}<small>回</small></b><button type="button" data-st="1" ${ro||""} aria-label="増やす">＋</button></span></div>`}).join("")}</div>`;
-  };
-  form.addEventListener("click",e=>{
-    const sp=e.target.closest("[data-sp]");if(sp){splitOn=sp.dataset.sp==="on";if(!splitOn)pays=[];renderSplit();return}
-    const st=e.target.closest("[data-st]");if(st){const c=st.closest(".sprow").dataset.card;let p=pays.find(x=>x.card===c);if(!p){p={card:c,draws:0,buyer:""};pays.push(p)}
-      const dr=num("#t-draws");let v=Math.max(0,(+p.draws||0)+(+st.dataset.st));if(+st.dataset.st>0&&dr){const others=pays.reduce((a,x)=>a+(x===p?0:+x.draws||0),0);v=Math.min(v,Math.max(0,dr-others))}p.draws=v;renderSplit();return}
-    const wb=e.target.closest("[data-who]");if(wb){const c=wb.dataset.who;let p=pays.find(x=>x.card===c);if(!p){p={card:c,draws:0,buyer:""};pays.push(p)}const L=C.people.length?C.people:["自分"],cur=p.buyer||chipVal(form,"buyer")||L[0];p.buyer=L[(L.indexOf(cur)+1)%L.length];renderSplit();return}
-  });
-  form.addEventListener("input",e=>{if(splitOn&&(e.target.id==="t-draws"||e.target.id==="t-bulk"||e.target.id==="t-unit"))renderSplit()});
-  form.addEventListener("click",e=>{if(splitOn&&e.target.closest('.cg[data-name="card"],.cg[data-name="buyer"],[data-draws],[data-unitp]'))setTimeout(renderSplit,0)});
-  setTimeout(renderSplit,0);
+  const pay=payAttach(form,t,{total:()=>num("#t-bulk")||0,draws:()=>num("#t-draws")||0});
   const applyW=()=>{
     const h=form.querySelector("header h2");if(h&&!id)h.textContent=W.nm+"を登録";
     form.querySelector("#t-name").placeholder=W.nm+"の名前";
@@ -2316,8 +2360,8 @@ function titleDialog(id,preset){
   if(fi)fi.addEventListener("change",async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;try{img=await shrink(f,IS_APP?600:900)}catch(x){toast("この画像は読み込めません");return}const ph=$("#t-photo");ph.querySelectorAll("img,svg:not(.cam svg)").forEach(x=>{if(!x.closest(".cam"))x.remove()});ph.insertAdjacentHTML("afterbegin",`<img src="${URL.createObjectURL(img)}" alt="">`)});
   const dbtn=$("#t-imgdel");if(dbtn)dbtn.addEventListener("click",()=>{img="remove";const ph=$("#t-photo");const im=ph.querySelector("img");if(im)im.remove();dbtn.hidden=true;toast("保存すると画像が外れます")});
   form.addEventListener("submit",async e=>{e.preventDefault();
-    const d=Object.assign({},t,{name:g("#t-name"),cat1:chipVal(form,"cat1"),cat2:g("#t-cat2"),unitPrice:num("#t-unit"),draws:num("#t-draws"),bulkCost:num("#t-bulk"),pDate:g("#t-pdate"),card:chipVal(form,"card"),buyer:chipVal(form,"buyer"),note:g("#t-note"),allocMode:amode,platform:chipVal(form,"platform"),ship:chipVal(form,"ship"),shipCost:num("#t-shipcost"),pays:splitOn?pays.filter(p=>+p.draws>0).map(p=>({card:p.card,buyer:p.buyer||chipVal(form,"buyer")||"",draws:+p.draws})):[]});
-    if(d.pays.length&&d.draws&&d.pays.reduce((a,p)=>a+p.draws,0)>d.draws){toast("分けた回数が合計回数を超えています");form.querySelector("#t-split").scrollIntoView({block:"center",behavior:"smooth"});return}
+    const d=Object.assign({},t,{name:g("#t-name"),cat1:chipVal(form,"cat1"),cat2:g("#t-cat2"),unitPrice:num("#t-unit"),draws:num("#t-draws"),bulkCost:num("#t-bulk"),pDate:g("#t-pdate"),...pay.read(),note:g("#t-note"),allocMode:amode,platform:chipVal(form,"platform"),ship:chipVal(form,"ship"),shipCost:num("#t-shipcost")});
+    const pe=pay.check();if(pe){toast(pe);form.querySelector("[data-pay]").scrollIntoView({block:"center",behavior:"smooth"});return}
     if(!d.name){form.querySelector("#t-name").focus();toast("名前を入れてください");return}
     d.id=id||uid("t");d.updatedAt=Date.now();
     const old=t.imageId||null,sb=form.querySelector(".sfoot .btn.pri");
@@ -2347,13 +2391,15 @@ function expDialog(id,preset){
     <div class="cg qadd">${[100,500,1000,5000].map(v=>`<button type="button" data-add-amt="${v}" ${ro}>+${v.toLocaleString("ja-JP")}</button>`).join("")}<button type="button" data-add-amt="0" ${ro}>クリア</button></div></section>
   ${sec("receipt","soft","何に使った？","",`<div class="cg excat" data-name="cat" role="radiogroup" aria-label="区分">${[...new Set(EXP_CATS.concat(e.cat?[e.cat]:[]))].map(c=>`<button type="button" role="radio" data-v="${esc(c)}" aria-checked="${c===e.cat}" ${ro}>${I(EXI[c]||EXI["その他"],2)}<span>${esc(c)}</span></button>`).join("")}</div>
     <label class="mf sm"><span class="lbl">内容（任意）</span><input id="e-note" class="mini-in" placeholder="例：OPP袋 100枚" value="${esc(e.note)}" ${ro}></label>`)}
-  ${sec("cart","teal","支払い","",`${dateF("e-date","使った日",e.date,ro)}${chipF("card","支払い方法",C.cards,e.card,ro,true)}${chipF("buyer","払った人",C.people,e.buyer,ro,true)}`)}
+  ${sec("cart","teal","支払い","",`${dateF("e-date","使った日",e.date,ro)}${payHTML(C,e,ro)}`)}
   <p class="note" style="padding:0 4px">経費は月の利益から差し引いて表示します</p>
   ${id&&S.canWrite?`<div class="box"><button type="button" class="act del" data-del-exp="${esc(id)}">この経費を削除</button></div>`:""}`,"保存","exp-form",false,`<button type="submit" class="btn pri">${id?"保存する":"記録する"}</button>`);
   const form=$("#exp-form"),g=s=>form.querySelector(s).value.trim();
+  const pay=payAttach(form,e,{total:()=>+g("#e-amt")||0});
   form.addEventListener("click",ev=>{const b=ev.target.closest("[data-add-amt]");if(!b)return;const inp=form.querySelector("#e-amt");const v=+b.dataset.addAmt;inp.value=v?(+inp.value||0)+v:"";inp.classList.remove("bump");void inp.offsetWidth;inp.classList.add("bump")});
   form.addEventListener("submit",async ev=>{ev.preventDefault();const amt=g("#e-amt");if(!has(amt)||!+amt){form.querySelector("#e-amt").focus();toast("金額を入れてください");return}
-    const d=Object.assign({},e,{id:id||uid("e"),amount:+amt,cat:chipVal(form,"cat")||"その他",date:g("#e-date"),card:chipVal(form,"card"),buyer:chipVal(form,"buyer"),note:g("#e-note"),updatedAt:Date.now()});
+    const d=Object.assign({},e,{id:id||uid("e"),amount:+amt,cat:chipVal(form,"cat")||"その他",date:g("#e-date"),...pay.read(),note:g("#e-note"),updatedAt:Date.now()});
+    const pe=pay.check();if(pe){toast(pe);return}
     if(await put("exps",d)){dlg.close();toast("記録しました")}});
 }
 
