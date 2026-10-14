@@ -1143,6 +1143,13 @@ input[type=number]{-moz-appearance:textfield}
 .bsr > span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bsr b{font-family:var(--num)}
 .bsr small{font:800 11.5px var(--num);min-width:62px;text-align:right}
+/* title cards: framed, selected highlight */
+.cards.tcards{gap:12px}
+.tcards .tcard{background:#fff;border:2px solid #e3e9ec;box-shadow:0 2px 0 rgb(13 44 51 / .04);transition:border-color .2s,box-shadow .2s,transform .12s}
+.tcards .tcard:active{transform:scale(.985)}
+.tcards .tcard:focus,.tcards .tcard:focus-visible{outline:none}
+.tcards .tcard.sel{border-color:var(--teal);box-shadow:0 0 0 4px rgb(18 169 184 / .14),0 6px 16px -10px rgb(18 169 184 / .6)}
+.tcards .tcard .top .th{background:var(--soft)}
 @media (max-width:559px){
   dialog{width:100%;max-width:100%;height:calc(100dvh - env(safe-area-inset-top,0px) - 10px);max-height:none;margin:auto 0 0;border-radius:16px 16px 0 0}
   dialog.short{height:auto;inset:auto 0 0 0;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 10px)}
@@ -2027,8 +2034,8 @@ function vTitlesBody(D){
   const rows=T.map(t=>({t,s:titleStats(t,D)})).sort((a,b)=>(b.t.pDate||"").localeCompare(a.t.pDate||""));
   const tb=rows.reduce((a,x)=>a+x.s.bal,0),plus=rows.filter(x=>x.s.bal>=0).length;
   return `<div class="sumbar"><span><b>${rows.length}</b>タイトル</span><span>黒字 <b>${plus}</b></span><span>合計 <b class="${pm(tb)}">${sYen(tb)}</b></span></div>
-  <div class="cards">${rows.map(({t,s})=>{const w=s.recov==null?0:Math.min(s.recov,2)/2*100;
-    return `<article class="tcard" role="button" tabindex="0" data-title="${esc(t.id)}">
+  <div class="cards tcards">${rows.map(({t,s})=>{const w=s.recov==null?0:Math.min(s.recov,2)/2*100;
+    return `<article class="tcard${S.selTitle===t.id?" sel":""}" role="button" tabindex="0" data-title="${esc(t.id)}" aria-current="${S.selTitle===t.id}">
       <div class="top">${thumb(imgSrc(t),t.cat1,true)}<div class="main"><h3>${esc(t.name)}</h3><div class="pills">${t.cat1?`<span class="pill">${esc(t.cat1)}</span>`:""}${t.draws?`<span class="pill days">${t.draws}回</span>`:""}${(()=>{const kn=s.its.filter(i=>i.status==="kept").length;if(!kn)return "";const kc=keptCalc(t.id);return `<span class="pill kept">★${kn}${kc&&kc.paid?"・タダ！":""}</span>`})()}${s.tg?`<span class="pill listed">${s.per!=null?`当たり${s.tg}点・1点 ${yen(s.per)}`:`当たり${s.tg}点・値段比`}</span>`:""}</div></div></div>
       <div class="bal"><span class="big n ${pm(s.bal)}">${sYen(s.bal)}</span><span class="sub">全部売れたら <b class="n ${pm(s.proj)}">${sYen(s.proj)}</b></span></div>
       <div><div class="meter ${s.recov>=1?"ok":""}"><i style="width:${w}%"></i><b></b></div><div class="mlab"><span>回収率 <b>${pct(s.recov)}</b></span><span>仕入 <b>${yen(s.cost)}</b>・販売 <b>${s.sold}/${s.its.length}</b></span></div></div>
@@ -2149,7 +2156,7 @@ function vSettings(){
   ${S.canWrite?`<button class="btn pri block" type="button" data-act="save-settings">設定を保存</button>`:""}
   <div class="grp"><div class="gh">バックアップ</div><div class="box"><button type="button" class="act" data-act="backup">バックアップを書き出す</button>${S.canWrite?`<label class="act" style="cursor:pointer;position:relative">バックアップから読み込む<input type="file" id="bk-in" accept=".json,application/json" style="position:absolute;inset:0;opacity:0"></label>`:""}</div><p class="note" style="padding:0 4px">${IS_APP?"データはこのiPhoneの中に保存されています。機種変更の前や、ときどきバックアップを書き出しておくと安心です":"独立版アプリにデータを移すときは、ここで書き出したファイルを独立版で読み込みます"}</p></div>
   <div class="grp"><div class="gh">データ</div><div class="box"><button type="button" class="act" data-act="export-all">全商品をCSVに書き出す</button>${sn&&S.canWrite?`<button type="button" class="act del" data-act="del-sample">サンプル${sn}件を削除</button>`:""}</div></div>
-  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-2</p>
+  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-3</p>
   </div>`;
 }
 
@@ -2568,7 +2575,7 @@ document.addEventListener("click",async e=>{
   if(a==="del-go"){if(!S.delSel.size)return;if(!ds.armed){ds.armed="1";el.textContent="もう一度押すと削除";setTimeout(()=>{if(el.isConnected){delete ds.armed;el.textContent=S.delSel.size+"点を削除"}},3000);return}
     const r=await removeItems([...S.delSel]);S.delMode=false;S.delSel.clear();render();toast(r.tn.length?`${r.n}点と、${delMsg(r).replace(/^削除しました（|）$/g,"")}`:`${r.n}点を削除しました`);return}
   if(ds.item){itemDialog(ds.item);return}
-  if(ds.title){titleDialog(ds.title);return}
+  if(ds.title){S.selTitle=ds.title;document.querySelectorAll(".tcard.sel").forEach(x=>x.classList.remove("sel"));if(el.classList.contains("tcard"))el.classList.add("sel");titleDialog(ds.title);return}
   if(ds.exp){expDialog(ds.exp);return}
   if(el.hasAttribute("data-tip")){const T=S.tips||[];if(T.length<2)return;S.tipIx=(S.tipIx+1)%T.length;const [m,c]=T[S.tipIx];el.innerHTML=`${CAPICON(c)}<span class="tt swap">${m}</span><span class="nx">${S.tipIx+1}/${T.length}</span>`;return}
   if(ds.hm){const k=shiftM(S.hm,+ds.hm);if(k<=CUR){S.hm=k;S.enter=true;render()}return}
