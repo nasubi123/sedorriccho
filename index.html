@@ -925,9 +925,13 @@ input[type=number]{-moz-appearance:textfield}
 .qslot.on .qn{color:var(--teal-ink)}
 .qslot svg.obj,.qcat svg.obj{width:46px;height:44px;overflow:visible}
 .qslot .obj .ob,.qslot .obj .gs,.qcat .obj .ob,.qcat .obj .gs{animation:none}
-.qcat{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:0 12px 14px}
+.qcat{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;padding:10px 12px 14px}
 .qcat button{display:grid;justify-items:center;gap:2px;padding:8px 2px;border-radius:14px;font-size:10.5px;font-weight:700;background:#fff;box-shadow:inset 0 0 0 1px var(--line)}
-.qcat button.used{opacity:.45}
+.qcat button{position:relative;border:2px solid transparent}
+.qcat button.used{background:var(--soft);box-shadow:none}
+.qcat button.used.on{border-color:var(--teal);background:var(--teal-bg)}
+.qcat button .qn{position:absolute;top:4px;left:5px;min-width:17px;height:17px;border-radius:99px;display:grid;place-items:center;font:800 10.5px var(--num);background:var(--ink);color:#fff}
+.qcat button.used.on .qn{background:var(--teal)}
 .qcat button:active{transform:scale(.95)}
 /* card flip anim */
 .cd .tc{width:118px;height:166px;position:relative;transform-style:preserve-3d;animation:cflip .62s .28s cubic-bezier(.45,0,.2,1) both}
@@ -2263,9 +2267,8 @@ function vSettings(){
     ${keyRow.map(([k,l])=>`<label class="fr"><span>${l}</span><span class="hx" data-hx="${k}">${th[k]}</span><input type="color" data-th="${k}" value="${th[k]}" ${ro}></label>`).join("")}
   </div><p class="note" style="padding:0 4px">色はすぐに保存され、どの画面にも反映されます</p></div>
   <div class="grp"><div class="gh">ホームのボタン${S.canWrite?`<button type="button" class="link" data-act="quick-reset">最初に戻す</button>`:""}</div><div class="box qset">
-    <p class="note" style="padding:12px 14px 0">変えたい場所をタップしてから、下から選んでください</p>
-    <div class="qslots">${quickList().map((k,ix)=>`<button type="button" class="qslot${(S.qsel||0)===ix?" on":""}" data-qslot="${ix}" ${ro}><span class="qn">${ix+1}</span>${QOBJ[QCAT[k].obj]()}<span class="ql">${QCAT[k].label}</span></button>`).join("")}</div>
-    <div class="qcat">${Object.entries(QCAT).map(([k,q])=>`<button type="button" data-qpick="${k}" class="${quickList().includes(k)?"used":""}" ${ro}>${QOBJ[q.obj]()}<span>${q.label}</span></button>`).join("")}</div>
+    <p class="note" style="padding:12px 14px 0">番号付きがホームに出ているボタンです。入れ替えたい番号をタップ → 使いたいボタンをタップ</p>
+    <div class="qcat">${Object.entries(QCAT).map(([k,q])=>{const ix=quickList().indexOf(k);return `<button type="button" data-qpick="${k}" class="${ix>=0?"used":""}${ix>=0&&(S.qsel||0)===ix?" on":""}" ${ro}>${ix>=0?`<span class="qn">${ix+1}</span>`:""}${QOBJ[q.obj]()}<span>${q.label}</span></button>`}).join("")}</div>
   </div></div>
   <div class="grp"><div class="gh">目標と通知</div><div class="box">
     <label class="fr"><span>月の目標利益</span><input id="s-goal" type="number" inputmode="numeric" placeholder="未設定" value="${esc(C.goal||"")}" ${ro}><span class="unit">円</span></label>
@@ -2284,7 +2287,7 @@ function vSettings(){
   </div></div>
   <div class="grp"><div class="gh">バックアップ</div><div class="box"><button type="button" class="act" data-act="backup">バックアップを書き出す</button>${S.canWrite?`<label class="act" style="cursor:pointer;position:relative">バックアップから読み込む<input type="file" id="bk-in" accept=".json,application/json" style="position:absolute;inset:0;opacity:0"></label>`:""}</div><p class="note" style="padding:0 4px">${IS_APP?"データはこのiPhoneの中に保存されています。機種変更の前や、ときどきバックアップを書き出しておくと安心です":"独立版アプリにデータを移すときは、ここで書き出したファイルを独立版で読み込みます"}</p></div>
   <div class="grp"><div class="gh">データ</div><div class="box"><button type="button" class="act" data-act="export-all">全商品をCSVに書き出す</button>${sn&&S.canWrite?`<button type="button" class="act del" data-act="del-sample">サンプル${sn}件を削除</button>`:""}</div></div>
-  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-9</p>
+  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-10</p>
   </div>`;
 }
 
@@ -2732,6 +2735,7 @@ document.addEventListener("click",async e=>{
   if(a==="tobags"){const b=$("#bags");if(b)b.scrollIntoView({behavior:"smooth",block:"start"});return}
   if(ds.q){const q=QCAT[ds.q];if(!q)return;const an=typeof q.anim==="function"?q.anim():q.anim;withIntro(an,q.run,el);return}
   if(ds.qslot){S.qsel=+ds.qslot;document.querySelectorAll(".qslot").forEach(x=>x.classList.toggle("on",x===el));return}
+  if(ds.qpick&&quickList().includes(ds.qpick)){S.qsel=quickList().indexOf(ds.qpick);document.querySelectorAll(".qcat button").forEach(x=>x.classList.toggle("on",x===el));return}
   if(ds.qpick){const Q=quickList().slice(),sel=S.qsel||0,k=ds.qpick,at=Q.indexOf(k);if(at>=0&&at!==sel)Q[at]=Q[sel];Q[sel]=k;S.qsel=(sel+1)%4;if(await putCfg(Object.assign({},S.cfg||{},{quick:Q})))toast(`${sel+1}番目を「${QCAT[k].label}」にしました`);return}
   if(a==="quick-reset"){S.qsel=0;if(await putCfg(Object.assign({},S.cfg||{},{quick:DEFQ})))toast("最初の4つに戻しました");return}
   if(ds.swatch){setThemeKey("main",ds.swatch,true);return}
