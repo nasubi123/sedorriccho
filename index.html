@@ -1150,6 +1150,24 @@ input[type=number]{-moz-appearance:textfield}
 .tcards .tcard:focus,.tcards .tcard:focus-visible{outline:none}
 .tcards .tcard.sel{border-color:var(--teal);box-shadow:0 0 0 4px rgb(18 169 184 / .14),0 6px 16px -10px rgb(18 169 184 / .6)}
 .tcards .tcard .top .th{background:var(--soft)}
+/* kept story */
+.kst{display:flex;gap:10px;align-items:flex-start;margin:8px 0 2px;padding:10px 12px;border-radius:14px;background:#f3efff;color:#4b36b5}
+.kst.free{background:linear-gradient(90deg,#fff6d6,#fff0c2);color:#7a5200}
+.kst .kic{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:#6b4ce0;color:#fff;font-size:13px}
+.kst.free .kic{background:#f2b22e}
+.kst b{display:block;font-size:13.5px}
+.kst small{display:block;font-size:11px;font-weight:700;opacity:.8;margin-top:2px;line-height:1.45}
+b.kp,.big.kp{color:#6b4ce0}
+.tcard .bal .kpre{font-size:12px;font-weight:800;color:#6b4ce0;width:100%;margin-bottom:-6px}
+.tcard .bal .kfree{font-weight:800;color:#b47800;background:#fff3cc;border-radius:99px;padding:3px 10px}
+.kexp{margin:10px 0 0;padding:12px;border-radius:16px;background:#f3efff;color:#3d2c96}
+.kexp > b{font-size:13px}
+.keq{display:flex;align-items:center;justify-content:center;gap:6px;margin:10px 0}
+.keq span{display:grid;text-align:center;background:#fff;border-radius:10px;padding:5px 9px;font:800 14px var(--num)}
+.keq span small{font:700 9.5px var(--sans,inherit);color:#7d6fc9}
+.keq span.hl{background:#6b4ce0;color:#fff}.keq span.hl small{color:#e5dcff}
+.keq i{font-style:normal;font-weight:800;color:#7d6fc9}
+.kexp p{margin:0;font-size:11.5px;line-height:1.7;font-weight:600}
 @media (max-width:559px){
   dialog{width:100%;max-width:100%;height:calc(100dvh - env(safe-area-inset-top,0px) - 10px);max-height:none;margin:auto 0 0;border-radius:16px 16px 0 0}
   dialog.short{height:auto;inset:auto 0 0 0;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 10px)}
@@ -1554,12 +1572,22 @@ function keptCalc(tid,over){
   const kept=its.filter(i=>i.status==="kept"),tg=(M.grp[tid]||[]).length,nk=kept.filter(i=>!has(i.cost)).length;
   const unit=has(t.bulkCost)&&(tg+nk)?n(t.bulkCost)/(tg+nk):0;
   const base={};kept.forEach(i=>{base[i.id]=has(i.cost)?+i.cost:unit});
-  const sb=Object.values(base).reduce((a,b)=>a+b,0),remaining=Math.max(0,cost-net),k=sb?Math.min(1,remaining/sb):0;
-  const E={};kept.forEach(i=>{E[i.id]={unit:base[i.id],eff:Math.round(base[i.id]*k)}});
-  return {t,kept,unit,remaining,E,cost,net,paid:cost>0&&remaining<=0,recov:cost?Math.min(1,net/cost):0,effSum:Math.round(sb*k),baseSum:sb};
+  const sb=Object.values(base).reduce((a,b)=>a+b,0),remaining=Math.max(0,cost-net);
+  // 自分用の実質の値段 = 仕入れ合計 − 売れた分の手取り（0円まで）。複数あるときは参考単価の比率で分ける
+  const E={};kept.forEach(i=>{E[i.id]={unit:base[i.id],eff:Math.round(sb?remaining*base[i.id]/sb:remaining/Math.max(1,kept.length))}});
+  const unsold=its.filter(i=>i.status==="stock"||i.status==="listed"),sold=its.filter(i=>SOLD(i.status));
+  let expNet=0;unsold.forEach(i=>{const r=calcItem(i,M.A[i.id]||0,C);if(r.expNet!=null)expNet+=r.expNet});
+  const label=kept.map(i=>i.prize||i.name).slice(0,2).join("・")+(kept.length>2?`ほか${kept.length-2}点`:"");
+  return {t,kept,unit,remaining,E,cost,net,paid:cost>0&&remaining<=0,recov:cost?Math.min(1,net/cost):0,effSum:remaining,baseSum:sb,
+    profit:Math.max(0,net-cost),unsold:unsold.length,soldN:sold.length,allSold:!unsold.length,projRemain:Math.max(0,cost-net-expNet),projProfit:Math.max(0,net+expNet-cost),hasProj:unsold.some(i=>has(i.listPrice)),label};
+}
+function keptStory(kc,big){
+  if(!kc||!kc.kept.length)return "";const L=esc(kc.label);
+  if(kc.paid)return `<div class="kst free"><span class="kic">★</span><div><b>${big?`利益 ${sYen(kc.profit)} ＋ `:""}${L}がタダ！</b><small>${kc.profit?`仕入れ ${yen(kc.cost)} を売上で回収して、さらに ${yen(kc.profit)} のプラス`:"売上で仕入れぶんを回収できました"}</small></div></div>`;
+  return `<div class="kst"><span class="kic">★</span><div><b>${L}を 実質 ${yen(kc.remaining)} で入手${kc.allSold?"":"中"}</b><small>${kc.allSold?`仕入れ ${yen(kc.cost)} − 売れた分 ${yen(kc.net)} ＝ ${yen(kc.remaining)} で買ったのと同じ`:`あと ${yen(kc.remaining)} 売れたらタダ${kc.hasProj?`・出品中が全部売れたら${kc.projRemain?` 実質 ${yen(kc.projRemain)}`:` タダ＋利益 ${yen(kc.projProfit)}`}`:""}`}</small></div></div>`;
 }
 function keptAll(){const out={};Object.values(S.items).forEach(i=>{if(i.status==="kept"&&i.titleId&&!out[i.titleId])out[i.titleId]=keptCalc(i.titleId)});return out}
-function keptOf(i,KA){if(i.titleId&&KA[i.titleId]&&KA[i.titleId].E[i.id])return Object.assign({paid:KA[i.titleId].paid},KA[i.titleId].E[i.id]);const c=n(i.cost);return {unit:c,eff:c,paid:false,solo:true}}
+function keptOf(i,KA){if(i.titleId&&KA[i.titleId]&&KA[i.titleId].E[i.id])return Object.assign({paid:KA[i.titleId].paid,recov:KA[i.titleId].recov},KA[i.titleId].E[i.id]);const c=n(i.cost);return {unit:c,eff:c,paid:false,solo:true}}
 
 /* store */
 function saveLocal(){try{localStorage.setItem("sedori-data",JSON.stringify({items:S.items,titles:S.titles,exps:S.exps,settles:S.settles,cfg:S.cfg}))}catch(e){toast("保存容量がいっぱいです。画像を減らすかバックアップしてください")}}
@@ -1742,7 +1770,7 @@ function shelfTag(i,D,C,k){
   const r=D.R[i.id],sold=SOLD(i.status),stale=isStale(i,r,C);
   let price,sub,cls="";
   if(sold){price=yen(r.sale);sub=`<span class="${pm(r.profit)}">利益 ${sYen(r.profit)}</span>`;cls="t-sold"}
-  else if(i.status==="kept"){const q=keptOf(i,S._KA||keptAll());price=q.paid||!q.eff?`<span class="free">タダ！</span>`:`<small class="jl">実質</small>${yen(q.eff)}`;sub=q.unit&&!q.solo?`<span class="${q.paid?"strike":""}">単価 ${yen(q.unit)}</span>`:(q.solo?"仕入れ値":"");cls="t-kept"}
+  else if(i.status==="kept"){const q=keptOf(i,S._KA||keptAll());price=q.paid||!q.eff?`<span class="free">タダ！</span>`:`<small class="jl">実質</small>${yen(q.eff)}`;sub=q.solo?"仕入れ値":q.paid?"元が取れた！":`回収 ${Math.round((q.recov||0)*100)}%`;cls="t-kept"}
   else if(has(i.listPrice)){price=yen(+i.listPrice);sub=r.expected!=null?`<span class="${pm(r.expected)}">見込 ${sYen(r.expected)}</span>`:"";cls=stale?"t-stale":""}
   else{price="価格未定";sub=`原価 ${yen(r.alloc)}`;cls="t-none"}
   return `<div class="ptag ${cls}" role="button" tabindex="0" data-item="${esc(i.id)}" style="--tilt:${[-2,1.5,-1,2,-1.5,1][k%6]}deg"><span class="hole"></span>${stale?`<span class="sale">売れ残り</span>`:""}<span class="pn">${esc(i.name||"名称なし")}</span><b class="pp">${price}</b><span class="ps">${sub}</span>${r.age!=null?`<span class="pa">${r.age}日目</span>`:""}</div>`;
@@ -2037,7 +2065,9 @@ function vTitlesBody(D){
   <div class="cards tcards">${rows.map(({t,s})=>{const w=s.recov==null?0:Math.min(s.recov,2)/2*100;
     return `<article class="tcard${S.selTitle===t.id?" sel":""}" role="button" tabindex="0" data-title="${esc(t.id)}" aria-current="${S.selTitle===t.id}">
       <div class="top">${thumb(imgSrc(t),t.cat1,true)}<div class="main"><h3>${esc(t.name)}</h3><div class="pills">${t.cat1?`<span class="pill">${esc(t.cat1)}</span>`:""}${t.draws?`<span class="pill days">${t.draws}回</span>`:""}${(()=>{const kn=s.its.filter(i=>i.status==="kept").length;if(!kn)return "";const kc=keptCalc(t.id);return `<span class="pill kept">★${kn}${kc&&kc.paid?"・タダ！":""}</span>`})()}${s.tg?`<span class="pill listed">${s.per!=null?`当たり${s.tg}点・1点 ${yen(s.per)}`:`当たり${s.tg}点・値段比`}</span>`:""}</div></div></div>
-      <div class="bal"><span class="big n ${pm(s.bal)}">${sYen(s.bal)}</span><span class="sub">全部売れたら <b class="n ${pm(s.proj)}">${sYen(s.proj)}</b></span></div>
+      ${(()=>{const kn=s.its.some(i=>i.status==="kept"),kc=kn?keptCalc(t.id):null;
+        if(!kc)return `<div class="bal"><span class="big n ${pm(s.bal)}">${sYen(s.bal)}</span><span class="sub">全部売れたら <b class="n ${pm(s.proj)}">${sYen(s.proj)}</b></span></div>`;
+        return kc.paid?`<div class="bal"><span class="big n plus">${sYen(kc.profit)}</span><span class="sub kfree">＋ ★${esc(kc.label)}タダ！</span></div>`:`<div class="bal"><span class="kpre">★${esc(kc.label)} 実質</span><span class="big n kp">${yen(kc.remaining)}</span><span class="sub">${kc.allSold?"で入手":`あと${yen(kc.remaining)}売れたらタダ`}</span></div>`})()}
       <div><div class="meter ${s.recov>=1?"ok":""}"><i style="width:${w}%"></i><b></b></div><div class="mlab"><span>回収率 <b>${pct(s.recov)}</b></span><span>仕入 <b>${yen(s.cost)}</b>・販売 <b>${s.sold}/${s.its.length}</b></span></div></div>
       ${s.its.length?`<div class="pz">${s.its.sort((a,b)=>(a.prize||"").localeCompare(b.prize||"","ja")).slice(0,20).map(i=>`<span class="${i.status}">${esc(i.prize||i.name.slice(0,6))}</span>`).join("")}</div>`:""}
     </article>`}).join("")}</div>`;
@@ -2156,7 +2186,7 @@ function vSettings(){
   ${S.canWrite?`<button class="btn pri block" type="button" data-act="save-settings">設定を保存</button>`:""}
   <div class="grp"><div class="gh">バックアップ</div><div class="box"><button type="button" class="act" data-act="backup">バックアップを書き出す</button>${S.canWrite?`<label class="act" style="cursor:pointer;position:relative">バックアップから読み込む<input type="file" id="bk-in" accept=".json,application/json" style="position:absolute;inset:0;opacity:0"></label>`:""}</div><p class="note" style="padding:0 4px">${IS_APP?"データはこのiPhoneの中に保存されています。機種変更の前や、ときどきバックアップを書き出しておくと安心です":"独立版アプリにデータを移すときは、ここで書き出したファイルを独立版で読み込みます"}</p></div>
   <div class="grp"><div class="gh">データ</div><div class="box"><button type="button" class="act" data-act="export-all">全商品をCSVに書き出す</button>${sn&&S.canWrite?`<button type="button" class="act del" data-act="del-sample">サンプル${sn}件を削除</button>`:""}</div></div>
-  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-3</p>
+  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-4</p>
   </div>`;
 }
 
@@ -2330,7 +2360,7 @@ function itemDialog(id,preset){
     else{c.innerHTML=`<div class="hd"><span>原価</span><span>${r.age!=null?"在庫"+r.age+"日":""}</span></div><div class="ln"><span>原価${an}</span><b>${yen(alloc)}</b></div><div class="tot"><span>利益</span><span class="faint" style="font-size:13px">${status==="kept"?"自分用は利益に入りません":"出品価格を入れると計算します"}</span></div>`;
       if(ft){fl.textContent="原価";ft.textContent=yen(alloc);ft.className=""}
       if(status==="kept"&&d.titleId&&S.titles[d.titleId]){const kc=keptCalc(d.titleId,Object.assign({},d,{id:id||"_new",status:"kept"})),q=kc.E[id||"_new"]||{unit:0,eff:0};
-        c.innerHTML=`<div class="hd"><span>★ COLLECTION</span><span>${esc(kc.t.name)}</span></div><div class="ln"><span>単価（同じくじで按分）</span><b>${yen(q.unit)}</b></div><div class="ln"><span>同じくじの売上で回収</span><b>${pct(kc.recov)}</b></div><div class="tot"><span>実質の仕入れ値</span><b class="${kc.paid||!q.eff?"plus":""}">${kc.paid||!q.eff?"タダ！":yen(q.eff)}</b></div><div class="meta"><span>${kc.paid?"同じくじの売上で元が取れました":"あと "+yen(kc.remaining)+" 売れたらタダになります"}</span></div>`;
+        c.innerHTML=`<div class="hd"><span>★ COLLECTION</span><span>${esc(kc.t.name)}</span></div><div class="ln"><span>くじの仕入れ合計</span><b>${yen(kc.cost)}</b></div><div class="ln"><span>売れた分の手取り（${kc.soldN}点）</span><b>−${yen(kc.net)}</b></div>${kc.kept.length>1?`<div class="ln"><span>自分用${kc.kept.length}点で分けると</span><b></b></div>`:""}<div class="tot"><span>実質の仕入れ値</span><b class="${kc.paid||!q.eff?"plus":""}">${kc.paid||!q.eff?"タダ！":yen(q.eff)}</b></div><div class="meta"><span>${kc.paid?(kc.profit?"タダ＋利益 "+yen(kc.profit):"売上で元が取れました"):kc.allSold?yen(q.eff)+" で買ったのと同じ":"あと "+yen(kc.remaining)+" 売れたらタダ"}</span></div>`;
         if(ft){fl.textContent="実質";ft.textContent=kc.paid||!q.eff?"タダ":yen(q.eff);ft.className=kc.paid?"plus":""}}}
   };
   form.addEventListener("input",upd);
@@ -2366,7 +2396,8 @@ function titleDialog(id,preset){
   const canImg=S.canWrite&&(assets||S.mode==="local");
   const PZ=["A賞","B賞","C賞","D賞","E賞","F賞","G賞","H賞","LAST賞"];
   const body=`
-  ${s?`<div class="rcpt"><div class="hd"><span>このタイトルの収支</span><span>${s.sold}/${s.its.length}点 販売</span></div><div class="ln"><span>仕入れ合計</span><b>${yen(s.cost)}</b></div><div class="ln"><span>売れた分の手取り</span><b>${yen(s.net)}</b></div><div class="tot"><span>いまの収支</span><b class="${pm(s.bal)}">${sYen(s.bal)}</b></div><div class="meta"><span>回収率 ${pct(s.recov)}</span><span>全部売れたら ${sYen(s.proj)}</span></div></div>`:""}
+  ${s?`<div class="rcpt"><div class="hd"><span>このタイトルの収支</span><span>${s.sold}/${s.its.length}点 販売</span></div><div class="ln"><span>仕入れ合計</span><b>${yen(s.cost)}</b></div><div class="ln"><span>売れた分の手取り</span><b>${yen(s.net)}</b></div>${(()=>{const kc=keptCalc(t.id);if(!kc||!kc.kept.length)return `<div class="tot"><span>いまの収支</span><b class="${pm(s.bal)}">${sYen(s.bal)}</b></div>`;
+    return kc.paid?`<div class="tot"><span>利益</span><b class="plus">${sYen(kc.profit)}</b></div>${keptStory(kc)}`:`<div class="tot"><span>★${esc(kc.label)}の実質</span><b class="kp">${yen(kc.remaining)}</b></div>${keptStory(kc)}`})()}<div class="meta"><span>回収率 ${pct(s.recov)}</span>${s.its.some(i=>i.status==="kept")?"":`<span>全部売れたら ${sYen(s.proj)}</span>`}</div></div>`:""}
   <section class="fs">
     <div class="nm-row"><label class="photo" id="t-photo">${src?`<img src="${esc(src)}" alt="">`:I(FI.cam,1.8)}${canImg?`<span class="cam">${I(IC.img,2)}</span><input type="file" id="t-img" accept="image/*" aria-label="画像を選ぶ">`:""}</label>
       <div class="nm-in"><input id="t-name" class="big-in" placeholder="${W.nm}の名前" value="${esc(t.name)}" aria-label="タイトル名" ${ro}>
@@ -2415,7 +2446,7 @@ function titleDialog(id,preset){
     its.forEach(i=>{const el=form.querySelector(`[data-per="${i.id}"]`);if(el&&!has(i.cost)&&i.status!=="kept"){el.textContent=isTarget(i,T2)?yen(M.A[i.id]):"0円";el.className="n"+(isTarget(i,T2)?"":" off")}});
     form.querySelector("#t-fm").innerHTML=(unit&&dr?`<div class="row1"><span class="v"><small>1回</small>${yen(unit)}</span><span class="op">×</span><span class="v"><small>回数</small>${dr}回</span><span class="op">=</span><span class="v"><small>${W.cost}</small>${yen(bulk||unit*dr)}</span></div>`:`<div class="row1"><span class="v"><small>${W.cost}</small>${bulk?yen(bulk):"未入力"}</span></div>`)+
       `<div class="row1"><span class="op">÷</span><span class="v"><small>売る当たり</small>${tg}点</span><span class="op">=</span><span class="v hl"><small>1点あたり</small>${tg&&bulk?(M.mode[tid]==="price"?"値段で配分":yen(per)):"—"}</span></div>`+
-      (nk&&bulk?`<div class="row1 kp"><span class="v"><small>★ 自分用</small>${nk}点</span><span class="op">→</span><span class="v"><small>単価 ${W.cost}÷${tg+nk}点</small>${yen(bulk/(tg+nk))}</span></div><p class="note" style="text-align:center;margin:0">自分用は売れた当たりの売上で回収されると、仕入れ値が自動でタダになります</p>`:"")+
+      (nk&&bulk?`<div class="kexp"><b>★ 自分用 ${nk}点の実質の値段</b><div class="keq"><span><small>${W.cost}</small>${yen(bulk)}</span><i>−</i><span><small>売る分の手取り</small>?</span><i>=</i><span class="hl"><small>自分用</small>実質</span></div><p>例）売る分の手取りが <b>${yen(bulk>2000?bulk-1000:Math.round(bulk/2))}</b> なら → 自分用は <b>${yen(bulk>2000?1000:bulk-Math.round(bulk/2))}</b> で買ったのと同じ<br>売る分の手取りが <b>${yen(bulk)}</b> 以上なら → 自分用は<b>タダ</b>、こえた分は利益</p></div>`:"")+
       (amode==="price"&&tg&&M.mode[tid]!=="price"?`<p class="note" style="text-align:center;margin:0">全ての当たりに出品価格か売れた価格が入ると、値段の比率で割ります</p>`:"");
     const ft=$("#t-foot");if(ft)ft.textContent=tg&&bulk?(M.mode[tid]==="price"?"値段で配分":yen(per)):"—";
   };
