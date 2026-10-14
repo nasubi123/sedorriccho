@@ -1168,6 +1168,17 @@ b.kp,.big.kp{color:#6b4ce0}
 .keq span.hl{background:#6b4ce0;color:#fff}.keq span.hl small{color:#e5dcff}
 .keq i{font-style:normal;font-weight:800;color:#7d6fc9}
 .kexp p{margin:0;font-size:11.5px;line-height:1.7;font-weight:600}
+/* status chips: all on one screen */
+.chips.stc{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px;overflow:visible;margin:0;padding:2px 0}
+.chips.stc .chip{display:grid;grid-template-columns:auto auto;justify-content:center;align-items:center;row-gap:3px;column-gap:4px;padding:8px 4px 7px;border-radius:16px;min-width:0;white-space:nowrap;font-size:12px}
+.chips.stc .chip .ci2{width:20px;height:20px;grid-row:1;grid-column:1}
+.chips.stc .chip .c{grid-row:1;grid-column:2;min-width:0;padding:1px 6px}
+.chips.stc .chip .cl{grid-row:2;grid-column:1/-1;text-align:center;overflow:hidden;text-overflow:ellipsis}
+.chips.pks{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:6px;overflow:visible;margin:0;padding:2px 0}
+.chips.pks .pick{min-width:0;padding:7px 22px 7px 9px;font-size:12px}
+.chips.pks .pick > span{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.chips.pks .pick > svg{display:none}
+.chips.pks{grid-template-columns:1.2fr 1fr 1fr}
 @media (max-width:559px){
   dialog{width:100%;max-width:100%;height:calc(100dvh - env(safe-area-inset-top,0px) - 10px);max-height:none;margin:auto 0 0;border-radius:16px 16px 0 0}
   dialog.short{height:auto;inset:auto 0 0 0;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 10px)}
@@ -2055,12 +2066,12 @@ function vItemsBody(D){
   return `<div class="stack">
     <label class="search sx">${I(IC.search)}<input type="search" id="f-q" placeholder="商品名・賞・タイトルで検索" value="${esc(f.q)}" aria-label="商品を検索"></label>
     <div class="chips stc">
-      <button type="button" class="chip sc-all" data-fstatus="" aria-pressed="${!f.status}"><i class="ci2">${I('<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/>',2.2)}</i>すべて<span class="c">${all.length}</span></button>
-      ${Object.entries(STATUS).map(([k,l])=>`<button type="button" class="chip sc-${k}" data-fstatus="${k}" aria-pressed="${f.status===k}"><i class="ci2">${I(STI[k],2.2)}</i>${l}<span class="c">${cnt[k]||0}</span></button>`).join("")}
-      ${stale?`<button type="button" class="chip sc-stale" data-fstatus="stale" aria-pressed="${f.status==="stale"}"><i class="ci2">${I(IC.down,2.4)}</i>売れ残り<span class="c">${stale}</span></button>`:""}
+      <button type="button" class="chip sc-all" data-fstatus="" aria-pressed="${!f.status}"><i class="ci2">${I('<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/>',2.2)}</i><span class="cl">すべて</span><span class="c">${all.length}</span></button>
+      ${Object.entries(STATUS).map(([k,l])=>`<button type="button" class="chip sc-${k}" data-fstatus="${k}" aria-pressed="${f.status===k}"><i class="ci2">${I(STI[k],2.2)}</i><span class="cl">${l}</span><span class="c">${cnt[k]||0}</span></button>`).join("")}
+      ${stale?`<button type="button" class="chip sc-stale" data-fstatus="stale" aria-pressed="${f.status==="stale"}"><i class="ci2">${I(IC.down,2.4)}</i><span class="cl">売れ残り</span><span class="c">${stale}</span></button>`:""}
     </div>
     <div class="chips pks">
-      <label class="pick ${f.sort!=="new"?"on":""}">${I('<path d="M7 4v16M3.5 16.5L7 20l3.5-3.5M17 20V4M13.5 7.5L17 4l3.5 3.5"/>',2)}<span>${SORTS[f.sort]}</span><select id="f-sort" aria-label="並べ替え">${Object.entries(SORTS).map(([k,l])=>`<option value="${k}" ${f.sort===k?"selected":""}>${l}</option>`).join("")}</select></label>
+      <label class="pick ${f.sort!=="new"?"on":""}">${I('<path d="M7 4v16M3.5 16.5L7 20l3.5-3.5M17 20V4M13.5 7.5L17 4l3.5 3.5"/>',2)}<span>${{new:"新しい順",age:"在庫が長い順",profit:"利益が大きい順",price:"価格が高い順"}[f.sort]}</span><select id="f-sort" aria-label="並べ替え">${Object.entries(SORTS).map(([k,l])=>`<option value="${k}" ${f.sort===k?"selected":""}>${l}</option>`).join("")}</select></label>
       <label class="pick ${f.cat?"on":""}">${I(IC.tag,2)}<span>${esc(f.cat||"カテゴリー")}</span><select id="f-cat" aria-label="カテゴリー"><option value="">すべて</option>${C.cats.map(c=>`<option ${f.cat===c?"selected":""}>${esc(c)}</option>`).join("")}</select></label>
       <label class="pick ${f.title?"on":""}">${I(IC.ticket,2)}<span>${esc(tname||"タイトル")}</span><select id="f-title" aria-label="タイトル"><option value="">すべて</option><option value="_none" ${f.title==="_none"?"selected":""}>単品のみ</option>${titles.map(t=>`<option value="${esc(t.id)}" ${f.title===t.id?"selected":""}>${esc(t.name)}</option>`).join("")}</select></label>
     </div>
@@ -2208,7 +2219,7 @@ function vSettings(){
   ${S.canWrite?`<button class="btn pri block" type="button" data-act="save-settings">設定を保存</button>`:""}
   <div class="grp"><div class="gh">バックアップ</div><div class="box"><button type="button" class="act" data-act="backup">バックアップを書き出す</button>${S.canWrite?`<label class="act" style="cursor:pointer;position:relative">バックアップから読み込む<input type="file" id="bk-in" accept=".json,application/json" style="position:absolute;inset:0;opacity:0"></label>`:""}</div><p class="note" style="padding:0 4px">${IS_APP?"データはこのiPhoneの中に保存されています。機種変更の前や、ときどきバックアップを書き出しておくと安心です":"独立版アプリにデータを移すときは、ここで書き出したファイルを独立版で読み込みます"}</p></div>
   <div class="grp"><div class="gh">データ</div><div class="box"><button type="button" class="act" data-act="export-all">全商品をCSVに書き出す</button>${sn&&S.canWrite?`<button type="button" class="act del" data-act="del-sample">サンプル${sn}件を削除</button>`:""}</div></div>
-  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-7</p>
+  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-8</p>
   </div>`;
 }
 
