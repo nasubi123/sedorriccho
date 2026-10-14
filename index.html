@@ -908,6 +908,13 @@ input[type=number]{-moz-appearance:textfield}
 @keyframes wobL{0%,70%,100%{transform:rotate(-14deg)}75%{transform:rotate(12deg) translateY(-2px)}80%{transform:rotate(-20deg)}86%{transform:rotate(-8deg)}}
 @keyframes wobL2{0%,40%,100%{transform:rotate(10deg)}45%{transform:rotate(-14deg) translateY(-2px)}50%{transform:rotate(18deg)}56%{transform:rotate(6deg)}}
 .wm:has(.lf){padding-left:30px}
+.wm.pt:has(.cp){padding-right:17px}
+.wm.pt{overflow:visible!important}
+.wm.pt .cp{width:15px;height:15px;top:-3px}
+.wm.pt .lf.a{top:-5px;left:-3px;width:19px;height:19px}
+.wm.pt .lf.b{top:12px;left:13px}
+.wm.pt.pg-bank .cp{animation:coinflip 3.6s ease-in-out infinite}
+@keyframes coinflip{0%,70%,100%{transform:translateY(0) scaleX(1)}78%{transform:translateY(-6px) scaleX(.15)}86%{transform:translateY(-3px) scaleX(1)}93%{transform:translateY(0)}}
 
 /* quick customize */
 .qset{--k2:var(--teal);--k3:var(--teal-d)}
@@ -1272,6 +1279,24 @@ const WM_IC={
  note:`<rect x="-10" y="-12" width="20" height="24" rx="3" fill="#fff"/><path d="M-5-4H6M-5 1H6M-5 6H2" stroke-width="2"/><rect x="-10" y="-12" width="5" height="24" rx="2" fill="#ff8a2a"/>`,
  bag:`<path d="M0-5C-9-4.5-12 3-11 8c1 5 21 5 22 0 1-5-2-12.5-11-13z" fill="#efc77c"/><path d="M-5-11l2.5-1.5L0-10l2.5-2.5L5-11C3.8-8.7 2.5-7.3 0-6.5-2.5-7.3-3.8-8.7-5-11z" fill="#efc77c"/>`
 };
+const PG_IC={
+ pig:`<path d="M-11 1c0-7 5.5-11 12-11 6 0 10.5 3.6 11.4 8.4l2.6.6v5.6l-2.8.8c-1 2.2-2.7 4-4.8 5.1l-.4 3.5h-4l-.3-2.3c-1 .2-2 .2-3 0l-.3 2.3h-4l-.6-4C-9 7.9-11 4.8-11 1z" fill="#ffb4c4"/><path d="M-6.5-8.6l-1.6-5 5 2.6" fill="#ff93ab"/><path d="M-4-8.5H3" stroke-width="2.4"/><circle cx="5.5" cy="-2.6" r="1.6" fill="#0d2c33" stroke="none"/><ellipse cx="11.6" cy="2.4" rx="2.6" ry="3.2" fill="#ff93ab" stroke-width="2"/>`,
+ coin:`<circle r="12" fill="#ffc531"/><circle r="7.5" fill="none" stroke="#e0a100" stroke-width="2"/><text y="5" text-anchor="middle" font-size="12" font-weight="900" fill="#0d2c33" stroke="none" font-family="ui-rounded,sans-serif">¥</text>`,
+ tag:`<g transform="rotate(-24)"><path d="M-5-13h10l3 5v20a2 2 0 0 1-2 2h-12a2 2 0 0 1-2-2v-20z" fill="#ff8a2a"/><circle cy="-6.5" r="2.2" fill="#fff"/><path d="M-4 2h8M-4 7h5" stroke="#fff" stroke-width="2.2"/></g>`,
+ cap:`<circle r="12" fill="#fff"/><path d="M-12 0A12 12 0 0 1 12 0Z" fill="#ff6b86"/><path d="M-12 0h24" stroke-width="2.4"/>`,
+ capT:`<circle r="12" fill="#fff"/><path d="M-12 0A12 12 0 0 1 12 0Z" fill="#11a6b5"/>`,
+ star:`<path d="M0-13l3.8 8 8.7 1.1-6.4 6 1.7 8.6L0 6.5l-7.8 4.2 1.7-8.6-6.4-6 8.7-1.1z" fill="#ffd23f"/>`,
+ sun:`<g stroke="#f5a300" stroke-width="3"><path d="M0-14v4M0 10v4M-14 0h4M10 0h4M-10-10l2.8 2.8M7.2 7.2L10 10M-10 10l2.8-2.8M7.2-7.2L10-10"/></g><circle r="7.5" fill="#ffc531"/><circle cx="-2.6" cy="-.6" r="1.1" fill="#0d2c33" stroke="none"/><circle cx="2.6" cy="-.6" r="1.1" fill="#0d2c33" stroke="none"/><path d="M-2.2 2.6q2.2 1.8 4.4 0" stroke-width="1.6"/>`,
+ cal:`<rect x="-11" y="-9" width="22" height="21" rx="3.5" fill="#fff"/><path d="M-11-5.5a3.5 3.5 0 0 1 3.5-3.5h15a3.5 3.5 0 0 1 3.5 3.5v2.5h-22z" fill="#ff8a2a"/><path d="M-5.5-12.5v6M5.5-12.5v6"/><circle cx="-4" cy="3" r="1.4" fill="#0d2c33" stroke="none"/><circle cx="1" cy="3" r="1.4" fill="#0d2c33" stroke="none"/><rect x="3.6" y="5.2" width="4.6" height="4.4" rx="1.2" fill="#11a6b5" stroke="none"/>`,
+ cloud:`<path d="M-9 8a6 6 0 0 1 .4-12A8 8 0 0 1 6.2-6.2 6.6 6.6 0 0 1 8.6 8z" fill="#fff"/>`,
+ chart:`<rect x="-12" y="-12" width="24" height="24" rx="4" fill="#fff"/><rect x="-7.5" y="0" width="4.4" height="7" rx="1" fill="#11a6b5" stroke-width="2"/><rect x="-2.2" y="-4" width="4.4" height="11" rx="1" fill="#ffc531" stroke-width="2"/><rect x="3.1" y="-8" width="4.4" height="15" rx="1" fill="#ff8a2a" stroke-width="2"/>`,
+ lens:`<path d="M5 5l7.5 7.5" stroke-width="4.4"/><circle cx="-2" cy="-2" r="9" fill="#d7f3f6"/><path d="M-6.5-4a5 5 0 0 1 4-3.5" stroke="#fff" stroke-width="2.2"/>`,
+ gear:`<g fill="#9aa8b0"><rect x="-3" y="-13.5" width="6" height="27" rx="1.6"/><rect x="-3" y="-13.5" width="6" height="27" rx="1.6" transform="rotate(60)"/><rect x="-3" y="-13.5" width="6" height="27" rx="1.6" transform="rotate(120)"/></g><circle r="8.6" fill="#c3ced4"/><circle r="3.4" fill="#fff"/>`,
+ brush:`<g transform="rotate(35)"><rect x="-3" y="-13" width="6" height="14" rx="2" fill="#11a6b5"/><path d="M-4.6 1h9.2v3.2h-9.2z" fill="#c3ced4"/><path d="M-4.6 4.2h9.2c0 4.5-2 8.8-4.6 8.8s-4.6-4.3-4.6-8.8z" fill="#ff8a2a"/></g>`
+};
+const PG_SET={items:["box","tag","capT"],titles:["kuji","cap","star"],cal:["sun","cal","cloud"],bank:["pig","coin","coin"],stats:["chart","lens","star"],settings:["gear","brush","capT"]};
+const pgIcon=(k,c)=>`<svg class="${c}" viewBox="-16 -16 32 32" aria-hidden="true"><g stroke="#0d2c33" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">${PG_IC[k]||WM_IC[k]}</g></svg>`;
+const pageTitle=tab=>{const st=PG_SET[tab]||[];return `<h1 class="wm pt pg-${tab}">${st[0]?pgIcon(st[0],"lf a"):""}${st[1]?pgIcon(st[1],"lf b"):""}${TITLES[tab]}<svg class="sw" viewBox="0 0 120 10" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C28 1.5 58 9.5 117 3" fill="none" stroke="var(--orange)" stroke-width="3" stroke-linecap="round"/></svg>${st[2]?pgIcon(st[2],"cp"):""}</h1>`};
 const WM_PICK=(()=>{const k=Object.keys(WM_IC);for(let i=k.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[k[i],k[j]]=[k[j],k[i]]}return k.slice(0,2)})();
 const wmIcon=(k,c)=>`<svg class="lf ${c}" viewBox="-16 -16 32 32" aria-hidden="true"><g stroke="#0d2c33" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">${WM_IC[k]}</g></svg>`;
 const WORDMARK=`<span class="wm" aria-label="せどりっちょ">${wmIcon(WM_PICK[0],"a")}${wmIcon(WM_PICK[1],"b")}せどりっちょ<svg class="sw" viewBox="0 0 120 10" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C28 1.5 58 9.5 117 3" fill="none" stroke="#f5821f" stroke-width="3" stroke-linecap="round"/></svg><svg class="cp" viewBox="-16 -16 32 32" aria-hidden="true"><circle r="12" fill="#fff" stroke="#0d2c33" stroke-width="3"/><path d="M-12 0A12 12 0 0 1 12 0Z" fill="#11a6b5" stroke="#0d2c33" stroke-width="3" stroke-linejoin="round"/></svg></span>`;
@@ -1655,7 +1680,7 @@ function monthStats(D,key){
 /* render */
 function render(){
   applyTheme(themeDraft||cfg().theme);
-  $("#ptitle").innerHTML=S.tab==="home"?WORDMARK:`<h1 class="wm pt">${TITLES[S.tab]}<svg class="sw" viewBox="0 0 120 10" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C28 1.5 58 9.5 117 3" fill="none" stroke="var(--orange)" stroke-width="3" stroke-linecap="round"/></svg></h1>`;
+  $("#ptitle").innerHTML=S.tab==="home"?WORDMARK:pageTitle(S.tab);
   const ship=Object.values(S.items).filter(i=>i.status==="shipping").length;
   $("#tabs").innerHTML=TABS.map(([k,l,ic])=>`<button role="tab" type="button" data-tab="${k}" class="${k==="home"?"center":""}" aria-selected="${TABOF(S.tab)===k}" aria-label="${l}"><span class="ic">${I(IC[ic],1.8)}</span><span class="lb">${l}</span></button>`).join("");
   $("#gear").setAttribute("aria-pressed",S.tab==="settings");
@@ -2124,7 +2149,7 @@ function vSettings(){
   ${S.canWrite?`<button class="btn pri block" type="button" data-act="save-settings">設定を保存</button>`:""}
   <div class="grp"><div class="gh">バックアップ</div><div class="box"><button type="button" class="act" data-act="backup">バックアップを書き出す</button>${S.canWrite?`<label class="act" style="cursor:pointer;position:relative">バックアップから読み込む<input type="file" id="bk-in" accept=".json,application/json" style="position:absolute;inset:0;opacity:0"></label>`:""}</div><p class="note" style="padding:0 4px">${IS_APP?"データはこのiPhoneの中に保存されています。機種変更の前や、ときどきバックアップを書き出しておくと安心です":"独立版アプリにデータを移すときは、ここで書き出したファイルを独立版で読み込みます"}</p></div>
   <div class="grp"><div class="gh">データ</div><div class="box"><button type="button" class="act" data-act="export-all">全商品をCSVに書き出す</button>${sn&&S.canWrite?`<button type="button" class="act del" data-act="del-sample">サンプル${sn}件を削除</button>`:""}</div></div>
-  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-1</p>
+  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-2</p>
   </div>`;
 }
 
