@@ -1530,34 +1530,48 @@ function sellDialog(id){
   calc();
 }
 
-function bundleSell(ids,C,D){
+function saleEdit(id){
+  const C=cfg(),D=derive(),i=S.items[id];if(!i)return;
+  if(!SOLD(i.status)){itemDialog(id);return}
+  const ids=i.bundleId?Object.values(S.items).filter(x=>x.bundleId===i.bundleId&&SOLD(x.status)).map(x=>x.id):[id];
+  bundleSell(ids,C,D,true);
+}
+function bundleSell(ids,C,D,edit){
   const its=ids.map(x=>Object.assign({},S.items[x])).filter(x=>x.id),cost=its.reduce((a,i)=>a+D.R[i.id].alloc,0);
-  const lp=its.map(i=>n(i.listPrice)),al=its.map(i=>D.R[i.id].alloc);
-  const basis=lp.every(v=>v>0)?["出品価格の比率",lp]:al.every(v=>v>0)?["原価の比率",al]:["均等",its.map(()=>1)];
+  const lp=its.map(i=>n(i.listPrice)),al=its.map(i=>D.R[i.id].alloc),spv=its.map(i=>n(i.salePrice));
+  const basis=edit&&spv.every(v=>v>0)?["今の金額の比率",spv]:lp.every(v=>v>0)?["出品価格の比率",lp]:al.every(v=>v>0)?["原価の比率",al]:["均等",its.map(()=>1)];
   const W=basis[1],SW=W.reduce((a,b)=>a+b,0);
   const share=tot=>{let acc=0;return W.map((w,k)=>{if(k===W.length-1)return tot-acc;const v=Math.floor(tot*w/SW);acc+=v;return v})};
-  const plat=its[0].platform||C.platforms[0]?.name||"",lsum=lp.reduce((a,b)=>a+b,0);
+  const plat=its[0].platform||C.platforms[0]?.name||"",lsum=edit?spv.reduce((a,b)=>a+b,0):lp.reduce((a,b)=>a+b,0);
+  const shTot=edit?its.reduce((a,i)=>a+n(i.shipCost),0):"",shM=edit?its[0].ship||"":"",dt=edit?its[0].sDate||TD:TD,one=its.length===1;
   const t0=S.titles[its[0].titleId],same=its.every(i=>i.titleId&&i.titleId===its[0].titleId);
-  openSheet("まとめて売れた！",`
+  openSheet(edit?"売れた内容を直す":"まとめて売れた！",`
   <section class="fs"><div class="bdl">${its.map(i=>{const t=S.titles[i.titleId];return `<div class="bdi">${thumb(imgSrc(t),i.cat1)}<b>${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.prize?"":i.name)}</b></div>`}).join("")}</div>
     <p class="note" style="margin:8px 2px 0">${same?esc(t0.name)+"・":""}${its.length}点・原価合計 ${yen(cost)}</p></section>
-  <section class="fs amtcard"><span class="lbl">まとめていくらで売れた？</span><label class="bigamt"><i>¥</i><input id="sl-p" type="number" inputmode="numeric" placeholder="0" value="${lsum||""}" aria-label="売れた値段（合計）"></label></section>
+  <section class="fs amtcard"><span class="lbl">${one?"いくらで売れた？":"まとめていくらで売れた？"}</span><label class="bigamt"><i>¥</i><input id="sl-p" type="number" inputmode="numeric" placeholder="0" value="${lsum||""}" aria-label="売れた値段（合計）"></label></section>
   ${sec("tag","ink","どこで売れた？","",`${chipF("platform","販売先",C.platforms.map(p=>[p.name,`${esc(p.name)}<small>${p.rate}%</small>`]),plat)}
-    ${chipF("ship","送り方",C.ships.map(x=>[x.name,`${esc(x.name)}<small>${x.cost?"¥"+x.cost:""}</small>`]),"",false,true)}
-    <div class="two">${money("sl-ship","送料（まとめて）","","0",true)}${dateF("sl-d","売れた日",TD)}</div>`)}
-  <div class="rcpt" id="sl-r"></div>`,null,"sell-form",false,`<div class="fsum"><span>利益</span><b id="sl-f">—</b></div><button type="submit" class="btn pri sellbtn">${its.length}点を売れた！で記録</button>`);
+    ${chipF("ship","送り方",C.ships.map(x=>[x.name,`${esc(x.name)}<small>${x.cost?"¥"+x.cost:""}</small>`]),shM,false,true)}
+    <div class="two">${money("sl-ship",one?"送料":"送料（まとめて）",shTot,"0",true)}${dateF("sl-d","売れた日",dt)}</div>`)}
+  <div class="rcpt" id="sl-r"></div>
+  ${edit&&S.canWrite?`<div class="box"><button type="button" class="act" data-open-item="${esc(its[0].id)}">商品の詳細を開く</button><button type="button" class="act del" data-unsell="1">売れたを取り消す（在庫に戻す）</button></div>`:""}`,null,"sell-form",false,`<div class="fsum"><span>利益</span><b id="sl-f">—</b></div><button type="submit" class="btn pri sellbtn">${edit?"直して保存":its.length+"点を売れた！で記録"}</button>`);
   const f=$("#sell-form"),v=s=>f.querySelector(s).value.trim();
   const calc=()=>{const p=n(v("#sl-p")),pl=C.platforms.find(x=>x.name===chipVal(f,"platform")),rate=pl?pl.rate:C.defaultRate,fee=Math.floor(p*rate/100),sh=n(v("#sl-ship")),pr=p-fee-sh-cost;
     const ps=share(p),fs=share(fee),ss=share(sh);
     $("#sl-r").innerHTML=`<div class="ln"><span>売れた値段（${its.length}点）</span><b>${yen(p)}</b></div><div class="ln"><span>手数料 ${rate}%</span><b>−${yen(fee)}</b></div><div class="ln"><span>送料</span><b>−${yen(sh)}</b></div><div class="ln"><span>原価合計</span><b>−${yen(cost)}</b></div><div class="tot"><span>利益</span><b class="${pm(pr)}">${sYen(pr)}</b></div>
-      <div class="bsp"><div class="bsh"><span>1点ずつの内訳</span><small>${basis[0]}で自動振り分け</small></div>${its.map((i,k)=>{const q=ps[k]-fs[k]-ss[k]-al[k];return `<div class="bsr"><span>${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</span><b>${yen(ps[k])}</b><small class="${pm(q)}">${sYen(q)}</small></div>`}).join("")}</div>`;
+      ${one?"":`<div class="bsp"><div class="bsh"><span>1点ずつの内訳</span><small>${basis[0]}で自動振り分け</small></div>${its.map((i,k)=>{const q=ps[k]-fs[k]-ss[k]-al[k];return `<div class="bsr"><span>${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</span><b>${yen(ps[k])}</b><small class="${pm(q)}">${sYen(q)}</small></div>`}).join("")}</div>`}`;
     const ft=$("#sl-f");if(ft){ft.textContent=p?sYen(pr):"—";ft.className=pm(pr)}return {p,rate,sh,pr,ps,fs,ss}};
   f.addEventListener("input",calc);
   f.addEventListener("chip",e=>{if(e.detail.name==="ship"){const x=C.ships.find(z=>z.name===e.detail.v);if(x&&x.cost)f.querySelector("#sl-ship").value=x.cost}calc()});
   f.addEventListener("submit",async e=>{e.preventDefault();const c=calc();if(!c.p){f.querySelector("#sl-p").focus();toast("売れた値段を入れてください");return}
-    const bid=uid("b"),sd=v("#sl-d")||TD,pf=chipVal(f,"platform"),sp=chipVal(f,"ship");let ok=true;
-    for(let k=0;k<its.length;k++){const d=Object.assign({},its[k],{status:"sold",salePrice:c.ps[k],sDate:sd,platform:pf,feeRate:c.rate,feeAmount:c.fs[k],ship:sp,shipCost:c.ss[k],bundleId:bid,bundleN:its.length,updatedAt:Date.now()});if(!await put("items",d)){ok=false;break}}
-    if(ok){dlg.close();celebrate(`${its.length}点まとめて売れました！ 利益 ${sYen(c.pr)}`)}});
+    const bid=one?(its[0].bundleId||null):(its[0].bundleId||uid("b")),sd=v("#sl-d")||TD,pf=chipVal(f,"platform"),sp=chipVal(f,"ship");let ok=true;
+    for(let k=0;k<its.length;k++){const d=Object.assign({},its[k],{status:edit&&its[k].status==="shipping"?"shipping":"sold",salePrice:c.ps[k],sDate:sd,platform:pf,feeRate:c.rate,feeAmount:c.fs[k],ship:sp,shipCost:c.ss[k],bundleId:bid,bundleN:one?null:its.length,updatedAt:Date.now()});if(!await put("items",d)){ok=false;break}}
+    if(ok){dlg.close();if(edit)toast(`直しました（利益 ${sYen(c.pr)}）`);else celebrate(`${its.length}点まとめて売れました！ 利益 ${sYen(c.pr)}`)}});
+  f.addEventListener("click",async e=>{
+    const oi=e.target.closest("[data-open-item]");if(oi){itemDialog(oi.dataset.openItem);return}
+    const un=e.target.closest("[data-unsell]");if(!un)return;
+    if(!un.dataset.armed){un.dataset.armed="1";const lb=un.textContent;un.textContent="もう一度押すと在庫に戻します";setTimeout(()=>{if(un.isConnected){delete un.dataset.armed;un.textContent=lb}},3000);return}
+    for(const x of its){await put("items",Object.assign({},x,{status:"stock",salePrice:null,sDate:"",feeAmount:null,bundleId:null,bundleN:null,updatedAt:Date.now()}))}
+    dlg.close();toast(its.length>1?`${its.length}点を在庫に戻しました`:"在庫に戻しました")});
   setTimeout(()=>{const p=f.querySelector("#sl-p");if(p&&!p.value)p.focus()},350);
   calc();
 }
@@ -1699,7 +1713,7 @@ function events(D){
   Object.values(S.items).forEach(i=>{
     const t=S.titles[i.titleId];
     if(i.pDate&&(has(i.cost)||!t))E.push({date:i.pDate,type:"buy",label:(i.prize?i.prize+" ":"")+i.name,sub:paysText(i,splitPays(i,i.cost,0))||[i.card,i.buyer].filter(Boolean).join("・"),amount:n(i.cost),ref:["item",i.id],img:imgSrc(t),cat:i.cat1});
-    if(SOLD(i.status)&&i.sDate){const r=D.R[i.id];E.push({date:i.sDate,type:"sell",label:(i.prize?i.prize+" ":"")+i.name,sub:i.platform||"",amount:r.sale,profit:r.profit,ref:["item",i.id],img:imgSrc(t),cat:i.cat1})}
+    if(SOLD(i.status)&&i.sDate){const r=D.R[i.id];E.push({date:i.sDate,type:"sell",label:(i.prize?i.prize+" ":"")+i.name,sub:i.platform||"",amount:r.sale,profit:r.profit,ref:["sale",i.id],img:imgSrc(t),cat:i.cat1})}
   });
   Object.values(S.exps).forEach(e=>{if(e.date)E.push({date:e.date,type:"exp",label:e.cat||"経費",sub:[e.note,e.card].filter(Boolean).join("・"),amount:n(e.amount),ref:["exp",e.id]})});
   return E.sort((a,b)=>b.date.localeCompare(a.date)||({sell:0,buy:1,exp:2}[a.type]-{sell:0,buy:1,exp:2}[b.type]));
@@ -2186,7 +2200,7 @@ function vSettings(){
   ${S.canWrite?`<button class="btn pri block" type="button" data-act="save-settings">設定を保存</button>`:""}
   <div class="grp"><div class="gh">バックアップ</div><div class="box"><button type="button" class="act" data-act="backup">バックアップを書き出す</button>${S.canWrite?`<label class="act" style="cursor:pointer;position:relative">バックアップから読み込む<input type="file" id="bk-in" accept=".json,application/json" style="position:absolute;inset:0;opacity:0"></label>`:""}</div><p class="note" style="padding:0 4px">${IS_APP?"データはこのiPhoneの中に保存されています。機種変更の前や、ときどきバックアップを書き出しておくと安心です":"独立版アプリにデータを移すときは、ここで書き出したファイルを独立版で読み込みます"}</p></div>
   <div class="grp"><div class="gh">データ</div><div class="box"><button type="button" class="act" data-act="export-all">全商品をCSVに書き出す</button>${sn&&S.canWrite?`<button type="button" class="act del" data-act="del-sample">サンプル${sn}件を削除</button>`:""}</div></div>
-  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-4</p>
+  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-5</p>
   </div>`;
 }
 
@@ -2333,7 +2347,7 @@ function itemDialog(id,preset){
   <div class="rcpt" id="i-calc" aria-live="polite"></div>
   ${sec("pen","soft","メモ","",`<textarea id="i-note" class="ta" rows="2" placeholder="状態、付属品、保管場所など" aria-label="メモ" ${ro}>${esc(i.note)}</textarea>
     <label class="mf sm"><span class="lbl">中分類（任意）</span><input id="i-cat2" class="mini-in" list="cat2list" placeholder="フィギュア など" value="${esc(i.cat2)}" ${ro}><datalist id="cat2list">${cat2s.map(c=>`<option value="${esc(c)}">`).join("")}</datalist></label>`)}
-  ${id&&S.canWrite?`<div class="box"><button type="button" class="act" data-dup-item="${esc(id)}">複製して新しく登録</button><button type="button" class="act del" data-del-item="${esc(id)}">${i.titleId&&S.titles[i.titleId]&&Object.values(S.items).filter(x=>x.titleId===i.titleId).length===1?"この商品を削除（くじの仕入れも消えます）":"この商品を削除"}</button></div>`:""}`;
+  ${id&&S.canWrite&&SOLD(i.status)?`<div class="box"><button type="button" class="act" data-sale="${esc(id)}">${i.bundleId?"まとめ売りの金額を直す":"売れた金額・送料を直す"}</button></div>`:""}${id&&S.canWrite?`<div class="box"><button type="button" class="act" data-dup-item="${esc(id)}">複製して新しく登録</button><button type="button" class="act del" data-del-item="${esc(id)}">${i.titleId&&S.titles[i.titleId]&&Object.values(S.items).filter(x=>x.titleId===i.titleId).length===1?"この商品を削除（くじの仕入れも消えます）":"この商品を削除"}</button></div>`:""}`;
   const foot=`<div class="fsum"><span id="i-flbl">利益</span><b id="i-foot">—</b></div><button type="submit" class="btn pri">${id?"保存する":"登録する"}</button>`;
   openSheet(id?"商品":"商品を追加",body,"保存","item-form",false,foot);
   const form=$("#item-form");
@@ -2472,7 +2486,7 @@ function titleDialog(id,preset){
     const st=e.target.closest("[data-step]");if(st){const v=Math.max(0,(num("#t-draws")||0)+(+st.dataset.step));form.querySelector("#t-draws").value=v||"";autoBulk();calcT();return}
     const up=e.target.closest("[data-unitp]");if(up){form.querySelector("#t-unit").value=up.dataset.unitp;autoBulk();calcT();return}
     const dq=e.target.closest("[data-draws]");if(dq){form.querySelector("#t-draws").value=dq.dataset.draws;autoBulk();calcT();return}
-    const pz=e.target.closest("[data-pz]");if(pz){const ta=form.querySelector("#t-prizes");let v=ta.value;if(pz.dataset.pz==="×"||pz.dataset.pz==="★"){const mk=pz.dataset.pz,ls=v.replace(/\s+$/,"").split("\n");const k=ls.length-1;const bare=ls[k].replace(/^[×xX✕★☆]\s*/,"");ls[k]=ls[k].startsWith(mk)?bare:mk+bare;ta.value=ls.join("\n")}else{ta.value=(v&&!v.endsWith("\n")?v+"\n":v)+pz.dataset.pz+" "}ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);calcT();return}
+    const pz=e.target.closest("[data-pz]");if(pz){const ta=form.querySelector("#t-prizes");let v=ta.value;if(pz.dataset.pz==="×"||pz.dataset.pz==="★"){const mk=pz.dataset.pz,ls=v.replace(/\s+$/,"").split("\n");const k=ls.length-1;const bare=ls[k].replace(/^[×xX✕★☆]\s*/,"");ls[k]=ls[k].startsWith(mk)?bare:mk+bare;ta.value=ls.join("\n")}else{ta.value=(v&&!v.endsWith("\n")?v+"\n":v)+pz.dataset.pz+" "}calcT();return}
   });
   form.querySelector("#t-mode").addEventListener("click",e=>{const b=e.target.closest("[data-am]");if(!b||b.disabled)return;amode=b.dataset.am;form.querySelectorAll("#t-mode button").forEach(x=>x.setAttribute("aria-pressed",x===b));calcT()});
   const fi=$("#t-img");
@@ -2599,6 +2613,7 @@ document.addEventListener("click",async e=>{
   if(el.hasAttribute("data-close")){dlg.close();return}
   if(el.id==="addbtn"||a==="menu"){openMenu();return}
   if(ds.goto){S.f.status=ds.status||"";go(ds.goto);return}
+  if(ds.sale){saleEdit(ds.sale);return}
   if(ds.item&&S.delMode){const id=ds.item;S.delSel.has(id)?S.delSel.delete(id):S.delSel.add(id);if(navigator.vibrate)navigator.vibrate(8);render();return}
   if(a==="del-mode"){S.delMode=true;S.delSel=new Set();render();return}
   if(a==="del-cancel"){S.delMode=false;S.delSel.clear();render();return}
