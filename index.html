@@ -1223,7 +1223,9 @@ const SHIPS_LATEST=[{name:"ネコポス",cost:210},{name:"ゆうパケットポ�
 const DEFAULT_CFG={defaultRate:10,goal:0,staleDays:30,cats:["一番くじ","ガチャガチャ","不用品","その他"],cards:["楽天カード","PayPayカード","現金"],people:["自分"],
   platforms:[{name:"メルカリ",rate:10},{name:"ラクマ",rate:10},{name:"Yahoo!フリマ",rate:5},{name:"手渡し",rate:0}],ships:SHIPS_LATEST};
 const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
-const T0=new Date(),TD=today(),CUR=TD.slice(0,7);
+let T0=new Date(),TD=today(),CUR=TD.slice(0,7);
+const dayTick=()=>{const t=today();if(t!==TD){T0=new Date();TD=t;CUR=TD.slice(0,7);if(typeof render==="function")render()}};
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")dayTick()});setInterval(dayTick,60000);addEventListener("pageshow",dayTick);
 const S={items:{},titles:{},exps:{},settles:{},cfg:null,mode:"loading",canWrite:true,tab:"home",delMode:false,delSel:new Set(),
   f:{q:"",status:"",cat:"",title:"",sort:"new"},hm:CUR,
   cal:{y:T0.getFullYear(),m:T0.getMonth(),sel:TD,show:"all"},
@@ -1502,7 +1504,7 @@ function sellDialog(id){
   if(!id){
     const stock=Object.values(S.items).filter(i=>i.status==="stock").sort((a,b)=>(b.pDate||"").localeCompare(a.pDate||""));
     openSheet("どれが売れた？",stock.length?`<label class="search">${I(IC.search)}<input type="search" id="sl-q" placeholder="名前・賞・タイトルで探す" aria-label="在庫を探す"></label>
-      <div class="pickl">${stock.map(i=>{const r=D.R[i.id],t=S.titles[i.titleId];return `<button type="button" class="pk" data-pick="${esc(i.id)}" data-key="${esc([i.name,i.prize,t?.name].join(" ").toLowerCase())}">${thumb(imgSrc(t),i.cat1)}<span class="main"><span class="t1">${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</span><span class="t2">${esc([t?.name,r.age!=null?`在庫${r.age}日`:""].filter(Boolean).join("・"))}</span></span><span class="side"><span class="sub">原価</span><span class="amt">${yen(r.alloc)}</span></span></button>`}).join("")}</div>`
+      <div class="pickl">${stock.map(i=>{const r=D.R[i.id],t=S.titles[i.titleId];return `<button type="button" class="pk" data-pick="${esc(i.id)}" data-key="${esc([i.name,i.prize,t?.name].join(" ").toLowerCase())}">${thumb(imgSrc(t),i.cat1)}<span class="main"><span class="t1">${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</span><span class="t2">${esc([t?.name,r.age!=null?`在庫${r.age+1}日目`:""].filter(Boolean).join("・"))}</span></span><span class="side"><span class="sub">原価</span><span class="amt">${yen(r.alloc)}</span></span></button>`}).join("")}</div>`
       :`<div class="card empty">${lane(true)}<b>在庫がありません</b><span>まずは仕入れた商品を記録しましょう</span></div>`,null,"sell-pick",false,stock.length?`<div class="fsum"><span>選んだ数</span><b id="sl-cnt">0点</b></div><button type="button" class="btn pri sellbtn" data-act="sell-go" disabled>タップして選ぶ</button>`:"");
     SELL_SEL=[];const ph=$("#sell-pick .pickl");if(ph)ph.insertAdjacentHTML("beforebegin",`<p class="note" style="margin:2px 4px 8px">まとめて売れたときは、いくつでも選べます</p>`);
     const q=$("#sl-q");if(q)q.addEventListener("input",()=>{const v=q.value.trim().toLowerCase();document.querySelectorAll("#sell-pick .pk").forEach(b=>b.hidden=!!v&&!b.dataset.key.includes(v))});
@@ -1511,7 +1513,7 @@ function sellDialog(id){
   const i=Object.assign({},S.items[id]),r0=D.R[id],t=S.titles[i.titleId],alloc=r0.alloc;
   const plat=i.platform||C.platforms[0]?.name||"";
   openSheet("売れた！",`
-  <section class="fs"><div class="nm-row">${thumb(imgSrc(t),i.cat1,true)}<div class="nm-in"><b class="sl-n">${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</b><span class="note">${esc(t?.name||i.cat1||"")}・原価 ${yen(alloc)}${r0.age!=null?`・在庫${r0.age}日`:""}</span></div></div></section>
+  <section class="fs"><div class="nm-row">${thumb(imgSrc(t),i.cat1,true)}<div class="nm-in"><b class="sl-n">${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</b><span class="note">${esc(t?.name||i.cat1||"")}・原価 ${yen(alloc)}${r0.age!=null?`・在庫${r0.age+1}日目`:""}</span></div></div></section>
   <section class="fs amtcard"><span class="lbl">いくらで売れた？</span><label class="bigamt"><i>¥</i><input id="sl-p" type="number" inputmode="numeric" placeholder="0" value="${esc(i.listPrice??"")}" aria-label="売れた値段"></label></section>
   ${sec("tag","ink","どこで売れた？","",`${chipF("platform","販売先",C.platforms.map(p=>[p.name,`${esc(p.name)}<small>${p.rate}%</small>`]),plat)}
     ${chipF("ship","送り方",C.ships.map(x=>[x.name,`${esc(x.name)}<small>${x.cost?"¥"+x.cost:""}</small>`]),i.ship||"",false,true)}
@@ -1684,7 +1686,7 @@ function calcItem(i,alloc,C){
   const profit=sold?net-alloc:i.status==="kept"?-alloc:null;
   let expNet=null,expected=null;
   if((i.status==="stock"||i.status==="listed")&&has(i.listPrice)){expNet=+i.listPrice-Math.floor(+i.listPrice*rate/100)-n(i.shipCost);expected=expNet-alloc}
-  const start=i.pDate;
+  const tt=i.titleId&&S.titles[i.titleId],start=(tt&&!has(i.cost)&&tt.pDate)||i.pDate;
   const age=(i.status==="stock"||i.status==="listed")?days(start,TD):null;
   const sellDays=sold&&i.sDate?days(start,i.sDate):null;
   return {alloc,rate,sale,fee,ship,net,profit,margin:sold&&sale?profit/sale:null,recov:sold&&alloc?net/alloc:null,expNet,expected,age,sellDays};
@@ -1762,7 +1764,7 @@ function itemCard(i,D,C){
   const stale=isStale(i,r,C);
   return `<div class="icard" role="button" tabindex="0" data-item="${esc(i.id)}">${thumb(imgSrc(t),i.cat1,false,SOLD(i.status))}
     <div class="main"><div class="t1">${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name||"名称なし")}</div>${t2?`<div class="t2">${esc(t2)}</div>`:""}
-    <div class="pills"><span class="pill ${i.status}">${i.status==="shipping"?I(IC.truck,2):""}${STATUS[i.status]||"出品前"}</span>${r.age!=null?`<span class="pill ${stale?"warn":"days"}">${stale?"長期 ":""}${r.age}日</span>`:""}${r.sellDays!=null&&i.status==="sold"?`<span class="pill days">${r.sellDays}日で売却</span>`:""}</div></div>
+    <div class="pills"><span class="pill ${i.status}">${i.status==="shipping"?I(IC.truck,2):""}${STATUS[i.status]||"出品前"}</span>${r.age!=null?`<span class="pill ${stale?"warn":"days"}">${stale?"長期 ":""}${r.age+1}日目</span>`:""}${r.sellDays!=null&&i.status==="sold"?`<span class="pill days">${r.sellDays}日で売却</span>`:""}</div></div>
     <div class="side"><span class="amt">${amt}</span><span class="sub">${sub}</span></div></div>`;
 }
 function gridTile(i,D,C){
@@ -1787,7 +1789,7 @@ function shelfTag(i,D,C,k){
   else if(i.status==="kept"){const q=keptOf(i,S._KA||keptAll());price=q.paid||!q.eff?`<span class="free">タダ！</span>`:`<small class="jl">実質</small>${yen(q.eff)}`;sub=q.solo?"仕入れ値":q.paid?"元が取れた！":`回収 ${Math.round((q.recov||0)*100)}%`;cls="t-kept"}
   else if(has(i.listPrice)){price=yen(+i.listPrice);sub=r.expected!=null?`<span class="${pm(r.expected)}">見込 ${sYen(r.expected)}</span>`:"";cls=stale?"t-stale":""}
   else{price="価格未定";sub=`原価 ${yen(r.alloc)}`;cls="t-none"}
-  return `<div class="ptag ${cls}" role="button" tabindex="0" data-item="${esc(i.id)}" style="--tilt:${[-2,1.5,-1,2,-1.5,1][k%6]}deg"><span class="hole"></span>${stale?`<span class="sale">売れ残り</span>`:""}<span class="pn">${esc(i.name||"名称なし")}</span><b class="pp">${price}</b><span class="ps">${sub}</span>${r.age!=null?`<span class="pa">${r.age}日目</span>`:""}</div>`;
+  return `<div class="ptag ${cls}" role="button" tabindex="0" data-item="${esc(i.id)}" style="--tilt:${[-2,1.5,-1,2,-1.5,1][k%6]}deg"><span class="hole"></span>${stale?`<span class="sale">売れ残り</span>`:""}<span class="pn">${esc(i.name||"名称なし")}</span><b class="pp">${price}</b><span class="ps">${sub}</span>${r.age!=null?`<span class="pa">${r.age+1}日目</span>`:""}</div>`;
 }
 function shelfHTML(items,D,C){
   const by={};items.forEach(i=>{(by[i.status]=by[i.status]||[]).push(i)});S._KA=keptAll();
@@ -2200,7 +2202,7 @@ function vSettings(){
   ${S.canWrite?`<button class="btn pri block" type="button" data-act="save-settings">設定を保存</button>`:""}
   <div class="grp"><div class="gh">バックアップ</div><div class="box"><button type="button" class="act" data-act="backup">バックアップを書き出す</button>${S.canWrite?`<label class="act" style="cursor:pointer;position:relative">バックアップから読み込む<input type="file" id="bk-in" accept=".json,application/json" style="position:absolute;inset:0;opacity:0"></label>`:""}</div><p class="note" style="padding:0 4px">${IS_APP?"データはこのiPhoneの中に保存されています。機種変更の前や、ときどきバックアップを書き出しておくと安心です":"独立版アプリにデータを移すときは、ここで書き出したファイルを独立版で読み込みます"}</p></div>
   <div class="grp"><div class="gh">データ</div><div class="box"><button type="button" class="act" data-act="export-all">全商品をCSVに書き出す</button>${sn&&S.canWrite?`<button type="button" class="act del" data-act="del-sample">サンプル${sn}件を削除</button>`:""}</div></div>
-  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-5</p>
+  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-6</p>
   </div>`;
 }
 
@@ -2369,9 +2371,9 @@ function itemDialog(id,preset){
     const r=calcItem(d,alloc),c=$("#i-calc"),ft=$("#i-foot"),fl=$("#i-flbl");lastProfit=r.profit??0;
     if(SOLD(status)){c.innerHTML=`<div class="hd"><span>RECEIPT</span><span>${d.sDate?md(d.sDate):""}</span></div><div class="ln"><span>売れた価格</span><b>${yen(r.sale)}</b></div><div class="ln"><span>手数料 ${has(d.feeAmount)?"":r.rate+"%"}</span><b>−${yen(r.fee)}</b></div><div class="ln"><span>送料</span><b>−${yen(r.ship)}</b></div><div class="ln"><span>原価${an}</span><b>−${yen(r.alloc)}</b></div><div class="tot"><span>利益</span><b class="${pm(r.profit)}">${sYen(r.profit)}</b></div><div class="meta"><span>利益率 ${pct(r.margin)}</span><span>回収率 ${pct(r.recov)}</span>${r.sellDays!=null?`<span>${r.sellDays}日で売却</span>`:""}</div>`;
       if(ft){fl.textContent="利益";ft.textContent=sYen(r.profit);ft.className=pm(r.profit)}}
-    else if(r.expected!=null){c.innerHTML=`<div class="hd"><span>売れたらこうなる</span><span>${r.age!=null?"在庫"+r.age+"日":""}</span></div><div class="ln"><span>出品価格</span><b>${yen(+d.listPrice)}</b></div><div class="ln"><span>手数料 ${r.rate}%</span><b>−${yen(Math.floor(+d.listPrice*r.rate/100))}</b></div><div class="ln"><span>送料</span><b>−${yen(n(d.shipCost))}</b></div><div class="ln"><span>原価${an}</span><b>−${yen(r.alloc)}</b></div><div class="tot"><span>見込みの利益</span><b class="${pm(r.expected)}">${sYen(r.expected)}</b></div><div class="meta"><span>利益率 ${pct(+d.listPrice?r.expected/+d.listPrice:null)}</span></div>`;
+    else if(r.expected!=null){c.innerHTML=`<div class="hd"><span>売れたらこうなる</span><span>${r.age!=null?"在庫"+(r.age+1)+"日目":""}</span></div><div class="ln"><span>出品価格</span><b>${yen(+d.listPrice)}</b></div><div class="ln"><span>手数料 ${r.rate}%</span><b>−${yen(Math.floor(+d.listPrice*r.rate/100))}</b></div><div class="ln"><span>送料</span><b>−${yen(n(d.shipCost))}</b></div><div class="ln"><span>原価${an}</span><b>−${yen(r.alloc)}</b></div><div class="tot"><span>見込みの利益</span><b class="${pm(r.expected)}">${sYen(r.expected)}</b></div><div class="meta"><span>利益率 ${pct(+d.listPrice?r.expected/+d.listPrice:null)}</span></div>`;
       if(ft){fl.textContent="見込み";ft.textContent=sYen(r.expected);ft.className=pm(r.expected)}}
-    else{c.innerHTML=`<div class="hd"><span>原価</span><span>${r.age!=null?"在庫"+r.age+"日":""}</span></div><div class="ln"><span>原価${an}</span><b>${yen(alloc)}</b></div><div class="tot"><span>利益</span><span class="faint" style="font-size:13px">${status==="kept"?"自分用は利益に入りません":"出品価格を入れると計算します"}</span></div>`;
+    else{c.innerHTML=`<div class="hd"><span>原価</span><span>${r.age!=null?"在庫"+(r.age+1)+"日目":""}</span></div><div class="ln"><span>原価${an}</span><b>${yen(alloc)}</b></div><div class="tot"><span>利益</span><span class="faint" style="font-size:13px">${status==="kept"?"自分用は利益に入りません":"出品価格を入れると計算します"}</span></div>`;
       if(ft){fl.textContent="原価";ft.textContent=yen(alloc);ft.className=""}
       if(status==="kept"&&d.titleId&&S.titles[d.titleId]){const kc=keptCalc(d.titleId,Object.assign({},d,{id:id||"_new",status:"kept"})),q=kc.E[id||"_new"]||{unit:0,eff:0};
         c.innerHTML=`<div class="hd"><span>★ COLLECTION</span><span>${esc(kc.t.name)}</span></div><div class="ln"><span>くじの仕入れ合計</span><b>${yen(kc.cost)}</b></div><div class="ln"><span>売れた分の手取り（${kc.soldN}点）</span><b>−${yen(kc.net)}</b></div>${kc.kept.length>1?`<div class="ln"><span>自分用${kc.kept.length}点で分けると</span><b></b></div>`:""}<div class="tot"><span>実質の仕入れ値</span><b class="${kc.paid||!q.eff?"plus":""}">${kc.paid||!q.eff?"タダ！":yen(q.eff)}</b></div><div class="meta"><span>${kc.paid?(kc.profit?"タダ＋利益 "+yen(kc.profit):"売上で元が取れました"):kc.allSold?yen(q.eff)+" で買ったのと同じ":"あと "+yen(kc.remaining)+" 売れたらタダ"}</span></div>`;
@@ -2504,6 +2506,7 @@ function titleDialog(id,preset){
       else if(S.mode==="local")d.imageData=await toDataURL(img);
     }
     if(!(await put("titles",d)))return;
+    if(id&&t.pDate&&d.pDate&&t.pDate!==d.pDate){for(const x of Object.values(S.items).filter(x=>x.titleId===id&&!has(x.cost)&&(!x.pDate||x.pDate===t.pDate)))await put("items",Object.assign({},x,{pDate:d.pDate,updatedAt:Date.now()}))}
     if(old&&assets&&old!==d.imageId)assets.delete(old).catch(()=>{});
     const ap=form.querySelector("#t-applyall");
     if(s&&ap&&ap.checked){const rate=(cfg().platforms.find(p=>p.name===d.platform)||{}).rate;for(const i of s.its){if(SOLD(i.status)||i.status==="kept")continue;const ni=Object.assign({},i,{platform:d.platform,ship:d.ship,shipCost:d.shipCost,updatedAt:Date.now()});if(rate!=null)ni.feeRate=rate;await put("items",ni);i.platform=ni.platform}}
