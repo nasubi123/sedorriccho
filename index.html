@@ -1179,6 +1179,30 @@ b.kp,.big.kp{color:#6b4ce0}
 .chips.pks .pick > span{overflow:hidden;text-overflow:ellipsis;min-width:0}
 .chips.pks .pick > svg{display:none}
 .chips.pks{grid-template-columns:1.2fr 1fr 1fr}
+/* image finder */
+.imgfind{margin-top:10px}
+.findbtn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;color:var(--teal-ink);background:var(--teal-bg,#e3f6f8);border-radius:99px;padding:7px 13px}
+.findbtn svg{width:14px;height:14px}
+.ifres{margin-top:10px}
+.ifgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.ifc,.ifsk{aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--soft);display:block;padding:0;position:relative}
+.ifsk{animation:ifp 1s ease-in-out infinite alternate}
+@keyframes ifp{to{opacity:.45}}
+.ifc{animation:ifin .35s var(--d,0ms) cubic-bezier(.2,1.3,.4,1) both;box-shadow:inset 0 0 0 1px var(--line)}
+@keyframes ifin{from{opacity:0;transform:scale(.85)}}
+.ifc img{width:100%;height:100%;object-fit:cover;display:block}
+.ifc.on{box-shadow:0 0 0 3px var(--orange)}
+.ifc.on::after{content:"✓";position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;background:var(--orange);color:#fff;font-weight:900;font-size:13px;display:grid;place-items:center}
+.iffoot{display:flex;justify-content:space-between;align-items:center;margin-top:7px;font-size:11.5px;color:var(--ink3);font-weight:700}
+.ifmsg{font-size:12px;line-height:1.7;color:var(--ink2);background:var(--soft);border-radius:12px;padding:10px 12px;margin:0}
+.gimg{color:var(--teal-ink);font-weight:800}
+.ithl{cursor:pointer;position:relative}
+.ithl img{width:100%;height:100%;object-fit:cover}
+.rkbox .mf{margin-bottom:8px}
+.rkrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rkhelp{margin-top:10px;font-size:12px;color:var(--ink2)}
+.rkhelp summary{font-weight:800;color:var(--teal-ink);cursor:pointer}
+.rkhelp ol{margin:8px 0 0;padding-left:18px;line-height:1.8}
 @media (max-width:559px){
   dialog{width:100%;max-width:100%;height:calc(100dvh - env(safe-area-inset-top,0px) - 10px);max-height:none;margin:auto 0 0;border-radius:16px 16px 0 0}
   dialog.short{height:auto;inset:auto 0 0 0;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 10px)}
@@ -1265,7 +1289,8 @@ const md=d=>d?`${+d.slice(5,7)}/${+d.slice(8,10)}`:"—";
 const mlabel=m=>m&&m!=="日付なし"?`${m.slice(0,4)}年${+m.slice(5)}月`:"日付なし";
 const shiftM=(k,dlt)=>{const d=new Date(+k.slice(0,4),+k.slice(5)-1+dlt,1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")};
 const clean=o=>JSON.parse(JSON.stringify(o,(k,v)=>v===undefined?null:v));
-const imgSrc=t=>t&&(t.imageId?"/_blob/"+t.imageId:t.imageData)||"";
+const imgSrc=t=>t&&(t.imageId?"/_blob/"+t.imageId:(t.imageData||t.imageUrl))||"";
+const itemImg=i=>i&&(imgSrc(i)||imgSrc(S.titles[i.titleId]))||"";
 function toast(m){document.querySelectorAll(".toast").forEach(x=>x.remove());const t=document.createElement("div");t.className="toast";t.textContent=m;t.setAttribute("role","status");document.body.appendChild(t);setTimeout(()=>t.remove(),2000)}
 function shrink(file,max=900){return new Promise((res,rej)=>{const u=URL.createObjectURL(file);const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>b?res(b):rej(),"image/jpeg",.85)};im.onerror=()=>{URL.revokeObjectURL(u);rej()};im.src=u})}
 const toDataURL=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
@@ -1515,7 +1540,7 @@ function sellDialog(id){
   if(!id){
     const stock=Object.values(S.items).filter(i=>i.status==="stock").sort((a,b)=>(b.pDate||"").localeCompare(a.pDate||""));
     openSheet("どれが売れた？",stock.length?`<label class="search">${I(IC.search)}<input type="search" id="sl-q" placeholder="名前・賞・タイトルで探す" aria-label="在庫を探す"></label>
-      <div class="pickl">${stock.map(i=>{const r=D.R[i.id],t=S.titles[i.titleId];return `<button type="button" class="pk" data-pick="${esc(i.id)}" data-key="${esc([i.name,i.prize,t?.name].join(" ").toLowerCase())}">${thumb(imgSrc(t),i.cat1)}<span class="main"><span class="t1">${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</span><span class="t2">${esc([t?.name,r.age!=null?`在庫${r.age}日`:""].filter(Boolean).join("・"))}</span></span><span class="side"><span class="sub">原価</span><span class="amt">${yen(r.alloc)}</span></span></button>`}).join("")}</div>`
+      <div class="pickl">${stock.map(i=>{const r=D.R[i.id],t=S.titles[i.titleId];return `<button type="button" class="pk" data-pick="${esc(i.id)}" data-key="${esc([i.name,i.prize,t?.name].join(" ").toLowerCase())}">${thumb(itemImg(i),i.cat1)}<span class="main"><span class="t1">${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</span><span class="t2">${esc([t?.name,r.age!=null?`在庫${r.age}日`:""].filter(Boolean).join("・"))}</span></span><span class="side"><span class="sub">原価</span><span class="amt">${yen(r.alloc)}</span></span></button>`}).join("")}</div>`
       :`<div class="card empty">${lane(true)}<b>在庫がありません</b><span>まずは仕入れた商品を記録しましょう</span></div>`,null,"sell-pick",false,stock.length?`<div class="fsum"><span>選んだ数</span><b id="sl-cnt">0点</b></div><button type="button" class="btn pri sellbtn" data-act="sell-go" disabled>タップして選ぶ</button>`:"");
     SELL_SEL=[];const ph=$("#sell-pick .pickl");if(ph)ph.insertAdjacentHTML("beforebegin",`<p class="note" style="margin:2px 4px 8px">まとめて売れたときは、いくつでも選べます</p>`);
     const q=$("#sl-q");if(q)q.addEventListener("input",()=>{const v=q.value.trim().toLowerCase();document.querySelectorAll("#sell-pick .pk").forEach(b=>b.hidden=!!v&&!b.dataset.key.includes(v))});
@@ -1524,7 +1549,7 @@ function sellDialog(id){
   const i=Object.assign({},S.items[id]),r0=D.R[id],t=S.titles[i.titleId],alloc=r0.alloc;
   const plat=i.platform||C.platforms[0]?.name||"";
   openSheet("売れた！",`
-  <section class="fs"><div class="nm-row">${thumb(imgSrc(t),i.cat1,true)}<div class="nm-in"><b class="sl-n">${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</b><span class="note">${esc(t?.name||i.cat1||"")}・原価 ${yen(alloc)}${r0.age!=null?`・在庫${r0.age}日`:""}</span></div></div></section>
+  <section class="fs"><div class="nm-row">${thumb(itemImg(i),i.cat1,true)}<div class="nm-in"><b class="sl-n">${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</b><span class="note">${esc(t?.name||i.cat1||"")}・原価 ${yen(alloc)}${r0.age!=null?`・在庫${r0.age}日`:""}</span></div></div></section>
   <section class="fs amtcard"><span class="lbl">いくらで売れた？</span><label class="bigamt"><i>¥</i><input id="sl-p" type="number" inputmode="numeric" placeholder="0" value="${esc(i.listPrice??"")}" aria-label="売れた値段"></label></section>
   ${sec("tag","ink","どこで売れた？","",`${chipF("platform","販売先",C.platforms.map(p=>[p.name,`${esc(p.name)}<small>${p.rate}%</small>`]),plat)}
     ${chipF("ship","送り方",C.ships.map(x=>[x.name,`${esc(x.name)}<small>${x.cost?"¥"+x.cost:""}</small>`]),i.ship||"",false,true)}
@@ -1559,7 +1584,7 @@ function bundleSell(ids,C,D,edit){
   const shTot=edit?its.reduce((a,i)=>a+n(i.shipCost),0):"",shM=edit?its[0].ship||"":"",dt=edit?its[0].sDate||TD:TD,one=its.length===1;
   const t0=S.titles[its[0].titleId],same=its.every(i=>i.titleId&&i.titleId===its[0].titleId);
   openSheet(edit?"売れた内容を直す":"まとめて売れた！",`
-  <section class="fs"><div class="bdl">${its.map(i=>{const t=S.titles[i.titleId];return `<div class="bdi">${thumb(imgSrc(t),i.cat1)}<b>${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.prize?"":i.name)}</b></div>`}).join("")}</div>
+  <section class="fs"><div class="bdl">${its.map(i=>{const t=S.titles[i.titleId];return `<div class="bdi">${thumb(itemImg(i),i.cat1)}<b>${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.prize?"":i.name)}</b></div>`}).join("")}</div>
     <p class="note" style="margin:8px 2px 0">${same?esc(t0.name)+"・":""}${its.length}点・原価合計 ${yen(cost)}</p></section>
   <section class="fs amtcard"><span class="lbl">${one?"いくらで売れた？":"まとめていくらで売れた？"}</span><label class="bigamt"><i>¥</i><input id="sl-p" type="number" inputmode="numeric" placeholder="0" value="${lsum||""}" aria-label="売れた値段（合計）"></label></section>
   ${sec("tag","ink","どこで売れた？","",`${chipF("platform","販売先",C.platforms.map(p=>[p.name,`${esc(p.name)}<small>${p.rate}%</small>`]),plat)}
@@ -1615,6 +1640,39 @@ function keptStory(kc,big){
 }
 function keptAll(){const out={};Object.values(S.items).forEach(i=>{if(i.status==="kept"&&i.titleId&&!out[i.titleId])out[i.titleId]=keptCalc(i.titleId)});return out}
 function keptOf(i,KA){if(i.titleId&&KA[i.titleId]&&KA[i.titleId].E[i.id])return Object.assign({paid:KA[i.titleId].paid,recov:KA[i.titleId].recov},KA[i.titleId].E[i.id]);const c=n(i.cost);return {unit:c,eff:c,paid:false,solo:true}}
+
+/* 画像検索（楽天） */
+const RK_KEY="sedori-rakuten";
+const rkGet=()=>{try{return JSON.parse(localStorage.getItem(RK_KEY)||"{}")||{}}catch(e){return {}}};
+const rkSet=v=>{try{localStorage.setItem(RK_KEY,JSON.stringify(v))}catch(e){}};
+function jsonp(url){return new Promise((res,rej)=>{const cb="rkcb"+Date.now()+Math.floor(Math.random()*1e4),sc=document.createElement("script");const tm=setTimeout(()=>{cl();rej({code:"network"})},9000);function cl(){clearTimeout(tm);delete window[cb];sc.remove()}window[cb]=j=>{cl();res(j)};sc.onerror=()=>{cl();rej({code:"network"})};sc.src=url+"&callback="+cb;document.head.appendChild(sc)})}
+function rkSearch(q){
+  const k=rkGet();if(!k.id||!k.key)return Promise.reject({code:"nokey"});
+  const url="https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20220601?format=json&formatVersion=2&hits=20&imageFlag=1&applicationId="+encodeURIComponent(k.id)+"&accessKey="+encodeURIComponent(k.key)+"&keyword="+encodeURIComponent(q);
+  const parse=j=>{if(j&&(j.error||j.errors))throw {code:j.error||(j.errors&&j.errors.errorCode)||"error",msg:j.error_description||(j.errors&&j.errors.errorMessage)||""};const out=[];
+    (j.Items||[]).forEach(it=>{const x=it.Item||it;(x.mediumImageUrls||[]).slice(0,2).forEach(u=>{u=typeof u==="string"?u:u&&u.imageUrl;if(u)out.push({src:u.replace(/_ex=\d+x\d+/,"_ex=400x400"),th:u.replace(/_ex=\d+x\d+/,"_ex=200x200"),name:x.itemName||""})})});
+    return out.filter((v,ix,a)=>a.findIndex(z=>z.src===v.src)===ix).slice(0,18)};
+  return fetch(url,{referrerPolicy:"strict-origin-when-cross-origin"}).then(r=>r.json()).then(parse).catch(e=>{if(e&&e.code)throw e;return jsonp(url).then(parse)});
+}
+const rkErr=e=>{const c=String(e&&e.code||"");if(c==="nokey")return "";if(/REFERRER/i.test(c))return "楽天に登録したWebサイトURLが違うようです。https://nasubi123.github.io を登録してください";if(/too_many|429/i.test(c))return "検索が多すぎるので少し待ってください";if(/wrong_parameter|not_found|ACCESS|invalid|key/i.test(c)||/key|access/i.test(String(e&&e.msg||"")))return "アプリIDかアクセスキーが違うようです（設定を確認）";return "画像を探せませんでした（通信できないか、楽天の設定を確認）"};
+function imgFinder(box,getQ,onPick){
+  if(!box)return;
+  box.innerHTML=`<div class="ifbar"><button type="button" class="findbtn" data-find>${I(IC.search,2.2)}ネットで画像を探す</button></div><div class="ifres" hidden></div>`;
+  const res=box.querySelector(".ifres");
+  const gq=()=>getQ().trim();
+  const gl=q=>`<a class="gimg" href="https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q)}" target="_blank" rel="noopener">Googleで画像を見る</a>`;
+  box.addEventListener("click",async e=>{
+    if(e.target.closest("[data-find]")){e.preventDefault();const q=gq();if(!q){toast("先に名前を入れてください");return}
+      res.hidden=false;
+      if(!rkGet().id){res.innerHTML=`<p class="ifmsg">楽天のアプリIDを「せってい」に入れると、ここに画像の候補が並びます。<br>今は ${gl(q)} から保存して、写真から選ぶこともできます。</p>`;return}
+      res.innerHTML=`<div class="ifgrid">${Array.from({length:6}).map(()=>`<span class="ifsk"></span>`).join("")}</div>`;
+      try{const L=await rkSearch(q);
+        res.innerHTML=L.length?`<div class="ifgrid">${L.map((x,k)=>`<button type="button" class="ifc" data-ifp="${esc(x.src)}" title="${esc(x.name)}" style="--d:${k*25}ms"><img src="${esc(x.th)}" alt="" loading="lazy" referrerpolicy="no-referrer"></button>`).join("")}</div><div class="iffoot"><span>タップで決定</span>${gl(q)}</div>`:`<p class="ifmsg">「${esc(q)}」の画像が見つかりませんでした。名前を短くしてみてください。<br>${gl(q)}</p>`}
+      catch(x){res.innerHTML=`<p class="ifmsg">${esc(rkErr(x))}<br>${gl(q)}</p>`}
+      return}
+    const c=e.target.closest("[data-ifp]");if(c){e.preventDefault();box.querySelectorAll(".ifc").forEach(x=>x.classList.toggle("on",x===c));onPick(c.dataset.ifp)}
+  });
+}
 
 /* store */
 function saveLocal(){try{localStorage.setItem("sedori-data",JSON.stringify({items:S.items,titles:S.titles,exps:S.exps,settles:S.settles,cfg:S.cfg}))}catch(e){toast("保存容量がいっぱいです。画像を減らすかバックアップしてください")}}
@@ -1730,8 +1788,8 @@ function events(D){
   Object.values(S.titles).forEach(t=>{if(t.pDate)E.push({date:t.pDate,type:"buy",label:t.name,sub:paysText(t)?[t.draws?t.draws+"回":"",paysText(t)].filter(Boolean).join("｜"):[t.draws?t.draws+"回":"",t.card,t.buyer].filter(Boolean).join("・"),amount:n(t.bulkCost),ref:["title",t.id],img:imgSrc(t),cat:t.cat1})});
   Object.values(S.items).forEach(i=>{
     const t=S.titles[i.titleId];
-    if(i.pDate&&(has(i.cost)||!t))E.push({date:i.pDate,type:"buy",label:(i.prize?i.prize+" ":"")+i.name,sub:paysText(i,splitPays(i,i.cost,0))||[i.card,i.buyer].filter(Boolean).join("・"),amount:n(i.cost),ref:["item",i.id],img:imgSrc(t),cat:i.cat1});
-    if(SOLD(i.status)&&i.sDate){const r=D.R[i.id];E.push({date:i.sDate,type:"sell",label:(i.prize?i.prize+" ":"")+i.name,sub:i.platform||"",amount:r.sale,profit:r.profit,ref:["sale",i.id],img:imgSrc(t),cat:i.cat1})}
+    if(i.pDate&&(has(i.cost)||!t))E.push({date:i.pDate,type:"buy",label:(i.prize?i.prize+" ":"")+i.name,sub:paysText(i,splitPays(i,i.cost,0))||[i.card,i.buyer].filter(Boolean).join("・"),amount:n(i.cost),ref:["item",i.id],img:itemImg(i),cat:i.cat1});
+    if(SOLD(i.status)&&i.sDate){const r=D.R[i.id];E.push({date:i.sDate,type:"sell",label:(i.prize?i.prize+" ":"")+i.name,sub:i.platform||"",amount:r.sale,profit:r.profit,ref:["sale",i.id],img:itemImg(i),cat:i.cat1})}
   });
   Object.values(S.exps).forEach(e=>{if(e.date)E.push({date:e.date,type:"exp",label:e.cat||"経費",sub:[e.note,e.card].filter(Boolean).join("・"),amount:n(e.amount),ref:["exp",e.id]})});
   return E.sort((a,b)=>b.date.localeCompare(a.date)||({sell:0,buy:1,exp:2}[a.type]-{sell:0,buy:1,exp:2}[b.type]));
@@ -1779,13 +1837,13 @@ function itemCard(i,D,C){
   else{amt=`<span class="faint">${yen(r.alloc)}</span>`;sub="原価"}
   const t2=[t?t.name:"",i.cat2||(!t?i.cat1:"")].filter(Boolean).join("・");
   const stale=isStale(i,r,C);
-  return `<div class="icard" role="button" tabindex="0" data-item="${esc(i.id)}">${thumb(imgSrc(t),i.cat1,false,SOLD(i.status))}
+  return `<div class="icard" role="button" tabindex="0" data-item="${esc(i.id)}">${thumb(itemImg(i),i.cat1,false,SOLD(i.status))}
     <div class="main"><div class="t1">${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name||"名称なし")}</div>${t2?`<div class="t2">${esc(t2)}</div>`:""}
     <div class="pills"><span class="pill ${i.status}">${i.status==="shipping"?I(IC.truck,2):""}${STATUS[i.status]||"出品前"}</span>${r.age!=null?`<span class="pill ${stale?"warn":"days"}">${stale?"長期 ":""}${r.age}日</span>`:""}${r.sellDays!=null&&i.status==="sold"?`<span class="pill days">${r.sellDays}日で売却</span>`:""}</div></div>
     <div class="side"><span class="amt">${amt}</span><span class="sub">${sub}</span></div></div>`;
 }
 function gridTile(i,D,C){
-  const r=D.R[i.id],t=S.titles[i.titleId],src=imgSrc(t),sold=SOLD(i.status);
+  const r=D.R[i.id],t=S.titles[i.titleId],src=itemImg(i),sold=SOLD(i.status);
   const price=sold?sYen(r.profit):has(i.listPrice)?yen(+i.listPrice):"";
   const cc=i.cat1==="一番くじ"?"c1":i.cat1==="ガチャガチャ"?"c2":"";
   return `<div class="gt ${cc} ${sold?"sold":""}" role="button" tabindex="0" data-item="${esc(i.id)}" aria-label="${esc((i.prize?i.prize+" ":"")+i.name)}">${src?`<img src="${esc(src)}" alt="" loading="lazy">`:`${glyph(i.cat1)}<span class="gn">${i.prize?esc(i.prize)+" ":""}${esc(i.name)}</span>`}${price?`<span class="gp">${price}</span>`:""}${sold?"":`<span class="gd ${isStale(i,r,C)?"stale":i.status}"></span>`}</div>`;
@@ -1794,7 +1852,7 @@ function gridTile(i,D,C){
 /* 商品棚 */
 const SHELF_ORDER=[["stock","在庫","お店に並んでいます"],["sold","売れた","おつかれさま！"],["kept","コレクション","自分で確保したもの"]];
 function shelfProduct(i,D,C){
-  const r=D.R[i.id],t=S.titles[i.titleId],src=imgSrc(t),sold=SOLD(i.status),stale=isStale(i,r,C);
+  const r=D.R[i.id],t=S.titles[i.titleId],src=itemImg(i),sold=SOLD(i.status),stale=isStale(i,r,C);
   const cc=i.cat1==="一番くじ"?"c1":i.cat1==="ガチャガチャ"?"c2":i.cat1==="不用品"?"c3":"c4";
   return `<div class="pd ${cc} ${i.status==="sold"?"sold":""} ${i.status==="kept"?"kept":""}" role="button" tabindex="0" data-item="${esc(i.id)}" aria-label="${esc((i.prize?i.prize+" ":"")+i.name)}">
     <span class="pkg">${src?`<img src="${esc(src)}" alt="" loading="lazy">`:glyph(i.cat1)}${i.prize?`<span class="pz">${esc(i.prize)}</span>`:""}${i.status==="shipping"?`<span class="stk2 ship">${I(IC.truck,2.2)}</span>`:""}${stale?`<span class="stk2 down">${I(IC.down,2.4)}</span>`:""}</span></div>`;
@@ -2040,7 +2098,7 @@ function vHome(D){
   ${cardHead("trend","月ごとの推移",`<span class="legend"><span><i class="key sell"></i>売上</span><span><i class="key buy"></i>仕入</span></span>`)}
     <div class="chart inner">${months.map(m=>{const x=MS[m];return `<div class="col ${m===k?"sel":""}" role="button" tabindex="0" data-hmset="${m}" aria-label="${mlabel(m)}"><div class="bars"><i class="sell" style="height:${x.sales/mx*100}%"></i><i class="buy" style="height:${x.buy/mx*100}%"></i></div><span class="m">${+m.slice(5)}月</span><span class="p ${pm(x.net)}">${x.net?sYen(x.net).replace("¥",""):"—"}</span></div>`}).join("")}</div>
   </section>
-  ${best.length?`${cardHead("best",`${mm}月によく稼いだ商品`)}<div class="rows inner">${best.map((i,ix)=>{const r=D.R[i.id],t=S.titles[i.titleId];return `<div class="row" role="button" tabindex="0" data-item="${esc(i.id)}"><span class="medal m${ix+1}">${ix+1}</span>${thumb(imgSrc(t),i.cat1)}<div class="main"><div class="t1">${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</div><div class="t2">${yen(r.sale)}で売却・利益率 ${pct(r.margin)}</div></div><div class="side"><span class="amt ${pm(r.profit)}">${sYen(r.profit)}</span></div></div>`}).join("")}</div></section>`:""}
+  ${best.length?`${cardHead("best",`${mm}月によく稼いだ商品`)}<div class="rows inner">${best.map((i,ix)=>{const r=D.R[i.id],t=S.titles[i.titleId];return `<div class="row" role="button" tabindex="0" data-item="${esc(i.id)}"><span class="medal m${ix+1}">${ix+1}</span>${thumb(itemImg(i),i.cat1)}<div class="main"><div class="t1">${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</div><div class="t2">${yen(r.sale)}で売却・利益率 ${pct(r.margin)}</div></div><div class="side"><span class="amt ${pm(r.profit)}">${sYen(r.profit)}</span></div></div>`}).join("")}</div></section>`:""}
   ${ev.length?`${cardHead("recent","最近の動き",`<button class="link" type="button" data-tab="cal">カレンダー</button>`)}<div class="inner recent">${ev.map((e,ix)=>(ix===0||ev[ix-1].date!==e.date?`<div class="dlbl"><span>${relDay(e.date)}</span></div>`:"")+eventRow(e)).join("")}</div></section>`:""}`;
 }
 
@@ -2217,9 +2275,16 @@ function vSettings(){
   ${simple("cats","カテゴリー")}${simple("cards","カード・決済")}${simple("people","仕入れ担当")}
   ${pair("platforms","販売先と手数料","%","rate")}${pair("ships","配送方法と送料（資材代込み）","円","cost")}
   ${S.canWrite?`<button class="btn pri block" type="button" data-act="save-settings">設定を保存</button>`:""}
+  <div class="grp"><div class="gh">画像検索（楽天）</div><div class="box rkbox">
+    <p class="note" style="margin:0 0 8px">商品名から画像の候補を出すのに使います。キーはこのiPhoneの中だけに保存されます。</p>
+    <label class="mf sm"><span class="lbl">アプリID（applicationId）</span><input id="rk-id" class="mini-in" autocomplete="off" autocapitalize="off" value="${esc(rkGet().id||"")}"></label>
+    <label class="mf sm"><span class="lbl">アクセスキー（accessKey）</span><input id="rk-key" class="mini-in" autocomplete="off" autocapitalize="off" value="${esc(rkGet().key||"")}"></label>
+    <div class="rkrow"><button type="button" class="btn sm" data-act="rk-save">保存してテスト</button><span id="rk-st" class="note"></span></div>
+    <details class="rkhelp"><summary>キーの取り方</summary><ol><li><a href="https://webservice.rakuten.co.jp/" target="_blank" rel="noopener">楽天ウェブサービス</a>に楽天IDでログイン</li><li>「+ アプリID発行」を押す</li><li>アプリ名は「せどりっちょ」、アプリURL・許可するWebサイトに <b>https://nasubi123.github.io</b> を入れる</li><li>発行された「アプリID」と「アクセスキー」を上にコピーして「保存してテスト」</li></ol></details>
+  </div></div>
   <div class="grp"><div class="gh">バックアップ</div><div class="box"><button type="button" class="act" data-act="backup">バックアップを書き出す</button>${S.canWrite?`<label class="act" style="cursor:pointer;position:relative">バックアップから読み込む<input type="file" id="bk-in" accept=".json,application/json" style="position:absolute;inset:0;opacity:0"></label>`:""}</div><p class="note" style="padding:0 4px">${IS_APP?"データはこのiPhoneの中に保存されています。機種変更の前や、ときどきバックアップを書き出しておくと安心です":"独立版アプリにデータを移すときは、ここで書き出したファイルを独立版で読み込みます"}</p></div>
   <div class="grp"><div class="gh">データ</div><div class="box"><button type="button" class="act" data-act="export-all">全商品をCSVに書き出す</button>${sn&&S.canWrite?`<button type="button" class="act del" data-act="del-sample">サンプル${sn}件を削除</button>`:""}</div></div>
-  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-8</p>
+  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-9</p>
   </div>`;
 }
 
@@ -2336,12 +2401,14 @@ function itemDialog(id,preset){
   const cat2s=[...new Set([...Object.values(S.items),...Object.values(S.titles)].map(x=>x.cat2).filter(Boolean))];
   const ro=S.canWrite?"":"disabled",log=(i.priceLog||[]).slice(-6),t0=S.titles[i.titleId];
   let status=i.status||"stock",lastProfit=0;
+  const canImgI=S.canWrite&&(assets||S.mode==="local");
   const body=`
   <section class="fs">
-    <div class="nm-row"><span class="th lg" id="i-th">${t0&&imgSrc(t0)?`<img src="${esc(imgSrc(t0))}" alt="">`:glyph(i.cat1)}</span>
+    <div class="nm-row"><label class="th lg ithl" id="i-th" ${canImgI?'for="i-img"':""}>${itemImg(i)?`<img src="${esc(itemImg(i))}" alt="">`:glyph(i.cat1)}</label>${canImgI?`<input type="file" id="i-img" accept="image/*" hidden>`:""}
       <div class="nm-in"><input id="i-name" class="big-in" placeholder="商品名を入力" value="${esc(i.name)}" aria-label="商品名" ${ro}>
         <div class="nm-sub"><input id="i-prize" class="mini-in" placeholder="賞（A賞など）" value="${esc(i.prize)}" aria-label="賞・番号" ${ro}>
         <label class="pick-in"><select id="i-title" aria-label="タイトル" ${ro}><option value="">タイトルなし</option>${titles.map(t=>`<option value="${esc(t.id)}" ${i.titleId===t.id?"selected":""}>${esc(t.name)}</option>`).join("")}</select></label></div></div></div>
+    ${S.canWrite?`<div class="imgfind" id="i-find"></div>${imgSrc(i)?`<button type="button" class="link" id="i-imgdel" style="color:var(--red);font-size:12.5px;margin:2px 4px 0">この商品の画像を外す</button>`:""}`:""}
     ${chipF("cat1","カテゴリー",C.cats,i.cat1,ro)}
   </section>
   ${id&&i.status==="stock"&&S.canWrite?`<button type="button" class="sellcta" data-pick="${esc(id)}"><span class="sci">${QOBJ.soldTag()}</span><span class="sct"><b>これが売れた！</b><small>値段を入れるだけで記録できます</small></span><span class="scg">${I(IC.r,2.4)}</span></button>`:""}
@@ -2372,6 +2439,10 @@ function itemDialog(id,preset){
   const form=$("#item-form");
   const g=s=>form.querySelector(s).value.trim(),num=s=>{const v=g(s);return v===""?null:+v},setv=(s,v)=>{form.querySelector(s).value=v};
   const pay=payAttach(form,i,{total:()=>num("#i-cost")||0});
+  let iimg=null,ipicked=null,ownPrev=imgSrc(i);
+  imgFinder($("#i-find"),()=>{const t=S.titles[g("#i-title")];return [t?t.name:"",g("#i-prize"),g("#i-name")].filter(Boolean).join(" ")},u=>{ipicked=u;iimg=null;ownPrev=u;upd()});
+  const iin=$("#i-img");if(iin)iin.addEventListener("change",async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;try{iimg=await shrink(f,500)}catch(x){toast("この画像は読み込めません");return}ipicked=null;ownPrev=URL.createObjectURL(iimg);upd()});
+  const idel=$("#i-imgdel");if(idel)idel.addEventListener("click",()=>{iimg="remove";ipicked=null;ownPrev="";idel.hidden=true;upd();toast("保存すると画像が外れます")});
   const read=()=>Object.assign({},i,{name:g("#i-name"),titleId:g("#i-title")||null,prize:g("#i-prize"),cat1:chipVal(form,"cat1"),cat2:g("#i-cat2"),cost:num("#i-cost"),pDate:g("#i-pdate"),...(pay?pay.read():{card:i.card,buyer:i.buyer,pays:i.pays||[]}),status,platform:chipVal(form,"platform"),listPrice:num("#i-list"),salePrice:num("#i-sale"),sDate:g("#i-sdate"),feeRate:num("#i-rate"),feeAmount:num("#i-feeamt"),ship:chipVal(form,"ship"),shipCost:num("#i-shipcost"),note:g("#i-note"),noAlloc:!form.querySelector("#i-inc").checked});
   const upd=()=>{
     const d=read(),t=S.titles[d.titleId],tmpId=id||"_new";
@@ -2379,7 +2450,7 @@ function itemDialog(id,preset){
     form.querySelector("#sec-list").hidden=status==="kept";
     form.querySelector("#sec-sold").hidden=!SOLD(status);
     form.querySelector("#sold-hint").hidden=status!=="stock";
-    if(!t||!imgSrc(t))form.querySelector("#i-th").innerHTML=glyph(d.cat1);else form.querySelector("#i-th").innerHTML=`<img src="${esc(imgSrc(t))}" alt="">`;
+    {const src=(typeof ownPrev!=="undefined"&&ownPrev)||imgSrc(t);form.querySelector("#i-th").innerHTML=src?`<img src="${esc(src)}" alt="" referrerpolicy="no-referrer">`:glyph(d.cat1)}
     const M=allocMap(Object.values(S.items).filter(x=>x.id!==id).concat([Object.assign({},d,{id:tmpId})]),S.titles);
     const alloc=M.A[tmpId];let an="";
     if(isTarget(Object.assign({},d,{id:tmpId}),S.titles)){const k=M.grp[d.titleId].length;an=M.mode[d.titleId]==="price"?`（当たり${k}点・値段比）`:`（くじ代÷当たり${k}点）`}
@@ -2409,6 +2480,9 @@ function itemDialog(id,preset){
   form.addEventListener("submit",async e=>{e.preventDefault();
     const d=read();if(!d.name){form.querySelector("#i-name").focus();toast("商品名を入れてください");return}
     const pe=pay.check();if(pe){toast(pe);form.querySelector("[data-pay]").scrollIntoView({block:"center",behavior:"smooth"});return}
+    if(iimg==="remove"){d.imageId=null;d.imageData=null;d.imageUrl=null}
+    else if(ipicked){d.imageUrl=ipicked;d.imageId=null;d.imageData=null}
+    else if(iimg instanceof Blob){d.imageUrl=null;if(assets){try{const r=await assets.upload(iimg,{type:"image/jpeg"});d.imageId=r.id;d.imageData=null}catch(x){toast("画像を保存できませんでした");return}}else if(S.mode==="local")d.imageData=await toDataURL(iimg)}
     if(SOLD(status)&&!has(d.salePrice)){form.querySelector("#i-sale").focus();toast("売れた価格を入れてください");return}
     if(has(d.listPrice)&&+d.listPrice!==+(i.listPrice??NaN)){d.priceLog=(i.priceLog||[]).concat([{d:TD,p:+d.listPrice}]).slice(-20)}
     d.id=id||uid("i");d.updatedAt=Date.now();if(!id)d.createdAt=Date.now();
@@ -2435,6 +2509,7 @@ function titleDialog(id,preset){
     <div class="nm-row"><label class="photo" id="t-photo">${src?`<img src="${esc(src)}" alt="">`:I(FI.cam,1.8)}${canImg?`<span class="cam">${I(IC.img,2)}</span><input type="file" id="t-img" accept="image/*" aria-label="画像を選ぶ">`:""}</label>
       <div class="nm-in"><input id="t-name" class="big-in" placeholder="${W.nm}の名前" value="${esc(t.name)}" aria-label="タイトル名" ${ro}>
       <div class="nm-sub">${src&&canImg?`<button type="button" class="link" id="t-imgdel" style="color:var(--red);font-size:13px">画像を外す</button>`:`<span class="note">写真をタップして画像を追加</span>`}</div></div></div>
+    ${S.canWrite?`<div class="imgfind" id="t-find"></div>`:""}
     ${chipF("cat1","カテゴリー",C.cats,t.cat1,ro)}
   </section>
   ${sec("ticket","orange",W.cost,W.hint,`
@@ -2508,6 +2583,8 @@ function titleDialog(id,preset){
     const pz=e.target.closest("[data-pz]");if(pz){const ta=form.querySelector("#t-prizes");let v=ta.value;if(pz.dataset.pz==="×"||pz.dataset.pz==="★"){const mk=pz.dataset.pz,ls=v.replace(/\s+$/,"").split("\n");const k=ls.length-1;const bare=ls[k].replace(/^[×xX✕★☆]\s*/,"");ls[k]=ls[k].startsWith(mk)?bare:mk+bare;ta.value=ls.join("\n")}else{ta.value=(v&&!v.endsWith("\n")?v+"\n":v)+pz.dataset.pz+" "}calcT();return}
   });
   form.querySelector("#t-mode").addEventListener("click",e=>{const b=e.target.closest("[data-am]");if(!b||b.disabled)return;amode=b.dataset.am;form.querySelectorAll("#t-mode button").forEach(x=>x.setAttribute("aria-pressed",x===b));calcT()});
+  let pickedUrl=null;
+  imgFinder($("#t-find"),()=>g("#t-name"),u=>{pickedUrl=u;img=null;const ph=$("#t-photo");ph.querySelectorAll("img").forEach(x=>x.remove());ph.querySelectorAll("svg").forEach(x=>{if(!x.closest(".cam"))x.remove()});ph.insertAdjacentHTML("afterbegin",`<img src="${esc(u)}" alt="" referrerpolicy="no-referrer">`)});
   const fi=$("#t-img");
   if(fi)fi.addEventListener("change",async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;try{img=await shrink(f,IS_APP?600:900)}catch(x){toast("この画像は読み込めません");return}const ph=$("#t-photo");ph.querySelectorAll("img,svg:not(.cam svg)").forEach(x=>{if(!x.closest(".cam"))x.remove()});ph.insertAdjacentHTML("afterbegin",`<img src="${URL.createObjectURL(img)}" alt="">`)});
   const dbtn=$("#t-imgdel");if(dbtn)dbtn.addEventListener("click",()=>{img="remove";const ph=$("#t-photo");const im=ph.querySelector("img");if(im)im.remove();dbtn.hidden=true;toast("保存すると画像が外れます")});
@@ -2517,8 +2594,9 @@ function titleDialog(id,preset){
     if(!d.name){form.querySelector("#t-name").focus();toast("名前を入れてください");return}
     d.id=id||uid("t");d.updatedAt=Date.now();
     const old=t.imageId||null,sb=form.querySelector(".sfoot .btn.pri");
-    if(img==="remove"){d.imageId=null;d.imageData=null}
-    else if(img instanceof Blob){
+    if(img==="remove"){d.imageId=null;d.imageData=null;d.imageUrl=null}
+    else if(!(img instanceof Blob)&&pickedUrl){d.imageUrl=pickedUrl;d.imageId=null;d.imageData=null}
+    else if(img instanceof Blob){d.imageUrl=null;
       if(assets){if(sb){sb.disabled=true;sb.textContent="保存中…"}try{const r=await assets.upload(img,{type:"image/jpeg"});d.imageId=r.id;d.imageData=null}catch(x){if(sb){sb.disabled=false;sb.textContent="保存する"}toast(x&&x.code==="quota_exceeded"?"画像の保存容量がいっぱいです":"画像を保存できませんでした");return}}
       else if(S.mode==="local")d.imageData=await toDataURL(img);
     }
@@ -2693,6 +2771,7 @@ document.addEventListener("click",async e=>{
   if(a==="del-sample"){if(!ds.armed){ds.armed="1";el.textContent="もう一度押すと削除";return}
     for(const i of Object.values(S.items).filter(i=>i.sample))await del("items",i.id);for(const t of Object.values(S.titles).filter(t=>t.sample))await del("titles",t.id);toast("サンプルを削除しました")}
   if(a==="reset-ships"){const box=document.querySelector('[data-list="ships"]');box.querySelectorAll(".li").forEach(x=>x.remove());const addb=box.querySelector("[data-add]");SHIPS_LATEST.forEach(s=>{const d=document.createElement("div");d.className="fr li";d.innerHTML=`<input aria-label="名前" value="${esc(s.name)}"><input class="nn" type="number" inputmode="decimal" aria-label="円" value="${s.cost}"><span class="unit">円</span><button type="button" class="rm" data-rm>削除</button>`;box.insertBefore(d,addb)});toast("最新の目安を入れました。保存で確定します")}
+  if(a==="rk-save"){const id=($("#rk-id").value||"").trim(),key=($("#rk-key").value||"").trim();rkSet({id,key});const st=$("#rk-st");if(!id||!key){st.textContent=id||key?"両方入れてください":"消しました";return}st.textContent="テスト中…";rkSearch("一番くじ").then(L=>{st.textContent=L.length?`OK！ 画像${L.length}件見つかりました`:"つながりました（画像0件）"}).catch(e=>{st.textContent=rkErr(e)});return}
   if(a==="save-settings"){
     const C=cfg(),c={theme:C.theme||null,quick:C.quick||null,defaultRate:+$("#s-rate").value||0,goal:+$("#s-goal").value||0,staleDays:Math.max(1,+$("#s-stale").value||30)};
     ["cats","cards","people"].forEach(k=>c[k]=[...document.querySelectorAll(`[data-list="${k}"] .li input`)].map(x=>x.value.trim()).filter(Boolean));
