@@ -1207,6 +1207,15 @@ b.kp,.big.kp{color:#6b4ce0}
 .rkhelp{margin-top:10px;font-size:12px;color:var(--ink2)}
 .rkhelp summary{font-weight:800;color:var(--teal-ink);cursor:pointer}
 .rkhelp ol{margin:8px 0 0;padding-left:18px;line-height:1.8}
+/* sell picker groups */
+.pgrp{margin-bottom:12px}
+.pgh{display:flex;align-items:center;gap:7px;margin:0 4px 6px;font-size:12.5px;min-width:0}
+.pgh b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.pdate{flex:none;display:inline-flex;align-items:center;gap:4px;font:800 11.5px var(--num);color:var(--teal-ink);background:var(--teal-bg,#e3f6f8);border-radius:99px;padding:3px 9px 3px 7px}
+.pdate svg{width:12px;height:12px}
+.pnth{flex:none;font-size:10.5px;font-weight:800;color:#fff;background:var(--orange);border-radius:99px;padding:2px 7px}
+.pmeta{flex:none;margin-left:auto;font-size:11px;font-weight:700;color:var(--ink3)}
+.pgrp.dupe .pickl{box-shadow:inset 3px 0 0 var(--orange)}
 @media (max-width:559px){
   dialog{width:100%;max-width:100%;height:calc(100dvh - env(safe-area-inset-top,0px) - 10px);max-height:none;margin:auto 0 0;border-radius:16px 16px 0 0}
   dialog.short{height:auto;inset:auto 0 0 0;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 10px)}
@@ -1542,12 +1551,18 @@ function sellDialog(id){
   const C=cfg(),D=derive();
   if(Array.isArray(id)){if(id.length===1)id=id[0];else return bundleSell(id,C,D)}
   if(!id){
-    const stock=Object.values(S.items).filter(i=>i.status==="stock").sort((a,b)=>(b.pDate||"").localeCompare(a.pDate||""));
-    openSheet("どれが売れた？",stock.length?`<label class="search">${I(IC.search)}<input type="search" id="sl-q" placeholder="名前・賞・タイトルで探す" aria-label="在庫を探す"></label>
-      <div class="pickl">${stock.map(i=>{const r=D.R[i.id],t=S.titles[i.titleId];return `<button type="button" class="pk" data-pick="${esc(i.id)}" data-key="${esc([i.name,i.prize,t?.name].join(" ").toLowerCase())}">${thumb(itemImg(i),i.cat1)}<span class="main"><span class="t1">${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</span><span class="t2">${esc([t?.name,r.age!=null?`在庫${r.age}日`:""].filter(Boolean).join("・"))}</span></span><span class="side"><span class="sub">原価</span><span class="amt">${yen(r.alloc)}</span></span></button>`}).join("")}</div>`
+    const stock=Object.values(S.items).filter(i=>i.status==="stock");
+    const pd=i=>{const t=S.titles[i.titleId];return (t&&!has(i.cost)&&t.pDate)||i.pDate||""};
+    const G={};stock.forEach(i=>{const t=S.titles[i.titleId],k=t?"t:"+t.id:"d:"+pd(i);(G[k]=G[k]||{k,t,date:t?(t.pDate||pd(i)):pd(i),its:[],ts:0}).its.push(i);G[k].ts=Math.max(G[k].ts,i.createdAt||0)});
+    const groups=Object.values(G).sort((a,b)=>(b.date||"").localeCompare(a.date||"")||b.ts-a.ts);
+    const seen={};groups.forEach(g=>{if(!g.t)return;const nk=g.t.name+"|"+g.date;seen[nk]=(seen[nk]||0)+1;g.n=seen[nk]});
+    const dup={};groups.forEach(g=>{if(g.t){const nk=g.t.name;dup[nk]=(dup[nk]||0)+1}});
+    const pkRow=i=>{const r=D.R[i.id];return `<button type="button" class="pk" data-pick="${esc(i.id)}" data-key="${esc([i.name,i.prize,S.titles[i.titleId]?.name,md(pd(i))].join(" ").toLowerCase())}">${thumb(itemImg(i),i.cat1)}<span class="main"><span class="t1">${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</span><span class="t2">${r.age!=null?`在庫${r.age}日`:""}</span></span><span class="side"><span class="sub">原価</span><span class="amt">${yen(r.alloc)}</span></span></button>`};
+    openSheet("どれが売れた？",stock.length?`<label class="search">${I(IC.search)}<input type="search" id="sl-q" placeholder="名前・賞・タイトル・日付で探す" aria-label="在庫を探す"></label>
+      ${groups.map(g=>`<section class="pgrp${g.t&&dup[g.t.name]>1?" dupe":""}"><div class="pgh"><span class="pdate">${I(IC.cal||'<rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/>',2.2)}${g.date?md(g.date):"日付なし"}</span><b>${g.t?esc(g.t.name):"単品"}</b>${g.t&&g.n>1?`<span class="pnth">${g.n}回目</span>`:""}<span class="pmeta">${g.t&&g.t.draws?g.t.draws+"回・":""}${g.its.length}点</span></div><div class="pickl">${g.its.sort((a,b)=>(a.prize||"").localeCompare(b.prize||"","ja")||(a.name||"").localeCompare(b.name||"","ja")).map(pkRow).join("")}</div></section>`).join("")}`
       :`<div class="card empty">${lane(true)}<b>在庫がありません</b><span>まずは仕入れた商品を記録しましょう</span></div>`,null,"sell-pick",false,stock.length?`<div class="fsum"><span>選んだ数</span><b id="sl-cnt">0点</b></div><button type="button" class="btn pri sellbtn" data-act="sell-go" disabled>タップして選ぶ</button>`:"");
-    SELL_SEL=[];const ph=$("#sell-pick .pickl");if(ph)ph.insertAdjacentHTML("beforebegin",`<p class="note" style="margin:2px 4px 8px">まとめて売れたときは、いくつでも選べます</p>`);
-    const q=$("#sl-q");if(q)q.addEventListener("input",()=>{const v=q.value.trim().toLowerCase();document.querySelectorAll("#sell-pick .pk").forEach(b=>b.hidden=!!v&&!b.dataset.key.includes(v))});
+    SELL_SEL=[];const ph=$("#sell-pick .pgrp");if(ph)ph.insertAdjacentHTML("beforebegin",`<p class="note" style="margin:2px 4px 8px">まとめて売れたときは、いくつでも選べます</p>`);
+    const q=$("#sl-q");if(q)q.addEventListener("input",()=>{const v=q.value.trim().toLowerCase();document.querySelectorAll("#sell-pick .pk").forEach(b=>b.hidden=!!v&&!b.dataset.key.includes(v));document.querySelectorAll("#sell-pick .pgrp").forEach(g=>g.hidden=!g.querySelector(".pk:not([hidden])"))});
     return;
   }
   const i=Object.assign({},S.items[id]),r0=D.R[id],t=S.titles[i.titleId],alloc=r0.alloc;
@@ -2287,7 +2302,7 @@ function vSettings(){
   </div></div>
   <div class="grp"><div class="gh">バックアップ</div><div class="box"><button type="button" class="act" data-act="backup">バックアップを書き出す</button>${S.canWrite?`<label class="act" style="cursor:pointer;position:relative">バックアップから読み込む<input type="file" id="bk-in" accept=".json,application/json" style="position:absolute;inset:0;opacity:0"></label>`:""}</div><p class="note" style="padding:0 4px">${IS_APP?"データはこのiPhoneの中に保存されています。機種変更の前や、ときどきバックアップを書き出しておくと安心です":"独立版アプリにデータを移すときは、ここで書き出したファイルを独立版で読み込みます"}</p></div>
   <div class="grp"><div class="gh">データ</div><div class="box"><button type="button" class="act" data-act="export-all">全商品をCSVに書き出す</button>${sn&&S.canWrite?`<button type="button" class="act del" data-act="del-sample">サンプル${sn}件を削除</button>`:""}</div></div>
-  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-10</p>
+  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-11</p>
   </div>`;
 }
 
