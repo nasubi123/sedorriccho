@@ -1224,6 +1224,55 @@ dialog{overflow:hidden;overscroll-behavior:contain}
 .sheet .body{overflow-x:hidden!important;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;max-width:100%}
 .sheet .body > *{min-width:0;max-width:100%}
 #sell-pick .pk,#sell-pick .pickl,#sell-pick .pgrp{max-width:100%;min-width:0}
+/* month why */
+.hmt{display:inline-flex;margin-left:auto;background:rgb(255 255 255 / .18);border-radius:99px;padding:2px}
+.hmt button{font-size:10.5px;font-weight:800;color:rgb(255 255 255 / .85);padding:4px 9px;border-radius:99px}
+.hmt button[aria-pressed="true"]{background:#fff;color:var(--teal-ink)}
+.hero .big[data-act]{cursor:pointer}
+.whyb{font-size:11px;font-weight:800;color:#fff;background:rgb(255 255 255 / .18);border-radius:99px;padding:4px 10px;margin:4px 6px 0 0}
+.whybox{background:#fff6e8;border-radius:16px;padding:12px 14px;color:#6b3d00}
+.whybox b{font-size:13.5px}.whybox p{margin:6px 0 0;font-size:12px;line-height:1.75}
+.rcpt .sub2{display:block;font-size:10.5px;color:var(--ink3);font-weight:700}
+.whyl{padding:0 12px}
+.wr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 0;border-bottom:.5px solid var(--line);cursor:pointer}
+.wr:last-child{border-bottom:0}
+.wn{display:grid;gap:2px;min-width:0}.wn b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wn small{font-size:11px;color:var(--ink3);font-weight:600}
+.wn small.warn,.stprev .warn{color:var(--red);font-weight:800}
+.wr.neg{background:linear-gradient(90deg,#fff1f0,transparent 60%)}
+/* settle */
+.stbar{height:8px;border-radius:9px;background:var(--soft);overflow:hidden;margin-top:10px}
+.stbar i{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--orange));border-radius:9px}
+.stbox{padding:12px 14px}
+.stamt{display:flex;align-items:baseline;gap:6px;border-bottom:2px solid var(--line);padding-bottom:4px}
+.stamt i{font-style:normal;font-weight:800;color:var(--ink3);font-size:20px}
+.stamt input{border:0;outline:0;background:none;font:800 30px var(--num);width:100%;color:var(--ink)}
+.stchips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 8px}
+.stchips button{font:800 12.5px var(--num);padding:7px 11px;border-radius:99px;background:var(--soft);color:var(--ink)}
+.stchips button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.stprev{font-size:12.5px;color:var(--ink2);margin-bottom:6px}
+.stlist{padding:0 12px}
+.sti{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 0;border-bottom:.5px solid var(--line)}
+.sti:last-child{border-bottom:0}
+.std{font:800 11px var(--num);color:var(--ink3);min-width:34px}
+.stn{display:grid;min-width:0;font-size:12.5px;font-weight:700}.stn small{font-size:10.5px;color:var(--ink3);font-weight:600}
+.stn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sta{display:grid;text-align:right}.sta b{font:800 13px var(--num)}.sta small{font-size:10.5px;font-weight:800;color:var(--orange-ink)}
+.sti.done{opacity:.5}.sti.done .sta small{color:var(--teal-ink)}
+.sti.part .sta small{color:var(--teal-ink)}
+/* series */
+.serchips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 2px}
+.serc{font-size:12px;font-weight:800;padding:6px 11px;border-radius:99px;background:#fff;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--ink2);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.serc span{margin-left:5px;color:var(--orange-ink);font-family:var(--num)}
+.serc[aria-pressed="true"]{background:var(--teal);color:#fff;box-shadow:none}.serc[aria-pressed="true"] span{color:#fff}
+.sersum{background:#fff;border:2px solid var(--teal);border-radius:20px;padding:14px;margin:10px 0 12px;display:grid;gap:10px}
+.sersum .sh{display:flex;align-items:center;gap:10px}.sersum .sh > div{flex:1;min-width:0;display:grid}
+.sersum .sh b{font-size:15px}.sersum .sh small{font-size:11.5px;color:var(--ink3);font-weight:700}
+.sersum .si{width:34px;height:34px;border-radius:12px;background:var(--teal-bg,#e3f6f8);color:var(--teal-ink);display:grid;place-items:center}.sersum .si svg{width:18px;height:18px}
+.sersum .sg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.sersum .sg div{background:var(--soft);border-radius:12px;padding:8px;display:grid;gap:2px}
+.sersum .sg span{font-size:10.5px;color:var(--ink3);font-weight:700}.sersum .sg b{font:800 13.5px var(--num)}
+.sersum .sb{display:flex;justify-content:space-between;align-items:baseline}.sersum .sb span{font-size:12.5px;font-weight:800;color:var(--ink2)}.sersum .sb b{font:800 24px var(--num)}
 @media (max-width:559px){
   dialog{width:100%;max-width:100%;height:calc(100dvh - env(safe-area-inset-top,0px) - 10px);max-height:none;margin:auto 0 0;border-radius:16px 16px 0 0}
   dialog.short{height:auto;inset:auto 0 0 0;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 10px)}
@@ -1821,12 +1870,29 @@ function events(D){
   Object.values(S.exps).forEach(e=>{if(e.date)E.push({date:e.date,type:"exp",label:e.cat||"経費",sub:[e.note,e.card].filter(Boolean).join("・"),amount:n(e.amount),ref:["exp",e.id]})});
   return E.sort((a,b)=>b.date.localeCompare(a.date)||({sell:0,buy:1,exp:2}[a.type]-{sell:0,buy:1,exp:2}[b.type]));
 }
+const itemBuyDate=i=>{const t=i.titleId&&S.titles[i.titleId];return (t&&!has(i.cost)&&t.pDate)||i.pDate||""};
 function monthStats(D,key){
-  let sales=0,profit=0,buy=0,exp=0,cnt=0;
-  Object.values(S.items).forEach(i=>{if(SOLD(i.status)&&ym(i.sDate)===key){const r=D.R[i.id];sales+=r.sale;profit+=r.profit;cnt++}});
+  let sales=0,profit=0,buy=0,exp=0,cnt=0,fee=0,ship=0,cogs=0,oldCost=0;
+  Object.values(S.items).forEach(i=>{if(SOLD(i.status)&&ym(i.sDate)===key){const r=D.R[i.id];sales+=r.sale;profit+=r.profit;fee+=r.fee;ship+=r.ship;cogs+=r.alloc;if(ym(itemBuyDate(i))<key)oldCost+=r.alloc;cnt++}});
   purchases().forEach(p=>{if(ym(p.date)===key)buy+=p.amount});
   Object.values(S.exps).forEach(e=>{if(ym(e.date)===key)exp+=n(e.amount)});
-  return {sales,profit,buy,exp,net:profit-exp,cnt};
+  const take=sales-fee-ship;
+  return {sales,profit,buy,exp,net:profit-exp,cnt,fee,ship,cogs,oldCost,take,cash:take-buy-exp};
+}
+const HMODE=()=>{try{return localStorage.getItem("sedori-hmode")==="cash"?"cash":"profit"}catch(e){return "profit"}};
+function monthWhy(k){
+  const D=derive(),M=monthStats(D,k),mm=+k.slice(5);
+  const sold=Object.values(S.items).filter(i=>SOLD(i.status)&&ym(i.sDate)===k).map(i=>({i,r:D.R[i.id]})).sort((a,b)=>a.r.profit-b.r.profit);
+  const why=M.net<0&&M.sales>M.buy?`<div class="whybox"><b>売上が仕入れより多いのに利益がマイナスなのは…</b><p>「利益」は、<u>売れた商品の原価</u>を、仕入れた月ではなく<u>売れた月</u>に引いて計算しています。${M.oldCost?`${mm}月に売れた商品のうち <b>${yen(M.oldCost)}</b> 分は、${mm}月より前に仕入れた分の原価です。`:""}さらに手数料・送料 <b>${yen(M.fee+M.ship)}</b> も引かれます。<br>その月に入ったお金と払ったお金だけで見たいときは、上の「収支」に切り替えてください（${mm}月は ${sYen(M.cash)}）。</p></div>`:"";
+  openSheet(`${mm}月の内訳`,`${why}
+  <div class="rcpt"><div class="hd"><span>利益（売れた分で計算）</span><span>${M.cnt}点売れた</span></div>
+    <div class="ln"><span>売上</span><b>${yen(M.sales)}</b></div><div class="ln"><span>手数料</span><b>−${yen(M.fee)}</b></div><div class="ln"><span>送料</span><b>−${yen(M.ship)}</b></div>
+    <div class="ln"><span>売れた商品の原価${M.oldCost?`<small class="sub2">うち先月までの仕入れ ${yen(M.oldCost)}</small>`:""}</span><b>−${yen(M.cogs)}</b></div><div class="ln"><span>経費</span><b>−${yen(M.exp)}</b></div>
+    <div class="tot"><span>利益</span><b class="${pm(M.net)}">${sYen(M.net)}</b></div></div>
+  <div class="rcpt"><div class="hd"><span>収支（その月に入ったお金 − 払ったお金）</span><span></span></div>
+    <div class="ln"><span>売上の手取り</span><b>${yen(M.take)}</b></div><div class="ln"><span>${mm}月の仕入れ</span><b>−${yen(M.buy)}</b></div><div class="ln"><span>経費</span><b>−${yen(M.exp)}</b></div>
+    <div class="tot"><span>収支</span><b class="${pm(M.cash)}">${sYen(M.cash)}</b></div></div>
+  ${sold.length?`<div class="grp"><div class="gh">${mm}月に売れた商品（利益が少ない順）</div><div class="box whyl">${sold.map(({i,r})=>`<div class="wr${r.profit<0?" neg":""}" role="button" tabindex="0" data-sale="${esc(i.id)}"><div class="wn"><b>${i.prize?`<span class="prz">${esc(i.prize)}</span>`:""}${esc(i.name)}</b><small>仕入 ${md(itemBuyDate(i))}・売値 ${yen(r.sale)}・原価 ${yen(r.alloc)}${r.fee+r.ship?`・手数料送料 ${yen(r.fee+r.ship)}`:""}</small>${r.profit<0&&r.alloc>r.sale?`<small class="warn">原価が売値より高い（くじ代の割り当てを確認）</small>`:""}</div><b class="${pm(r.profit)}">${sYen(r.profit)}</b></div>`).join("")}</div></div>`:""}`,null,"why-form",true);
 }
 
 /* render */
@@ -1968,7 +2034,7 @@ function bankHTML(D,M,goal){
   ${cardHead("bags","おかえし袋",`<span class="note">${tot?`合計 <b class="n" style="color:var(--ink)">${yen(tot)}</b>`:"すべて返済済み"}</span>`,'id="bags"')}
     ${owed.length?`<div class="bags">${owed.map(o=>{const L=owedLabel(o);return `<button type="button" class="bag ${o.owed>0?"full":"empty"}" data-settle="${esc(o.key)}">${bagSVG(o,o.owed/mx)}<b class="bn">${esc(L.t)}</b><span class="bs">${esc(L.s)}</span><span class="ba n">${o.owed>0?yen(o.owed):"返済済み"}</span></button>`}).join("")}</div>
     ${Object.keys(ppl).length?`<div class="rows" style="margin-top:6px">${Object.entries(ppl).map(([p,arr])=>`<div class="row"><div class="main"><div class="t1">${esc(p)}さんに返す</div><div class="t2">${arr.map(o=>`${esc(o.card)} ${yen(o.owed)}`).join("・")}</div></div><div class="side"><span class="amt">${yen(arr.reduce((a,o)=>a+o.owed,0))}</span></div></div>`).join("")}</div>`:""}
-    <p class="note" style="margin-top:8px">袋をタップすると返済済みにできます。仕入れと経費を、払った人と支払い方法ごとに集めています</p>`:`<p class="note">仕入れや経費を記録すると、払った人と支払い方法ごとに袋ができます</p>`}
+    <p class="note" style="margin-top:8px">袋をタップすると、返した金額を入れられます（一部だけ・端数もOK）。仕入れと経費を、払った人と支払い方法ごとに集めています</p>`:`<p class="note">仕入れや経費を記録すると、払った人と支払い方法ごとに袋ができます</p>`}
   </section>`;
 }
 function vBank(D){
@@ -2049,15 +2115,31 @@ function goalDialog(){
 }
 function settleDialog(key){
   const o=owedList().find(x=>x.key===key);if(!o)return;const L=owedLabel(o);
-  const hist=Object.values(S.settles).filter(x=>x.buyer+"｜"+x.card===key).sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,5);
-  openSheet(L.t,`<div class="rcpt"><div class="hd"><span>${esc(L.s)}</span><span>${o.n}件</span></div><div class="ln"><span>これまでの合計</span><b>${yen(o.total)}</b></div><div class="ln"><span>返済済み</span><b>−${yen(o.paid)}</b></div><div class="tot"><span>残り</span><b>${yen(o.owed)}</b></div></div>
-  ${o.owed>0&&S.canWrite?`<div class="grp"><div class="gh">今回返した金額</div><div class="box"><label class="fr"><span>金額</span><input id="st-v" type="number" inputmode="numeric" value="${Math.round(o.owed)}" style="font-size:20px"><span class="unit">円</span></label><label class="fr"><span>返した日</span><input id="st-d" type="date" value="${TD}"></label></div></div>
-  <button class="btn pri block" type="submit">返済済みにする</button>`:""}
-  ${hist.length?`<div class="grp"><div class="gh">返済の記録</div><div class="box">${hist.map(x=>`<div class="fr"><span>${md(x.date)}</span><span class="hx" style="text-align:right;flex:1">${yen(x.amount)}</span>${S.canWrite?`<button type="button" class="rm" data-unsettle="${esc(x.id)}" style="color:var(--red);font-size:13px;padding-left:10px">取り消す</button>`:""}</div>`).join("")}</div></div>`:""}`,null,"settle-form",true);
-  const f=$("#settle-form");
-  f.addEventListener("submit",async e=>{e.preventDefault();const v=Math.round(+f.querySelector("#st-v").value||0);if(v<=0){toast("金額を入れてください");return}
+  const hist=Object.values(S.settles).filter(x=>x.buyer+"｜"+x.card===key).sort((a,b)=>(b.date||"").localeCompare(a.date||"")||(b.at||0)-(a.at||0));
+  // 明細（古い順に返済を充てて、どこまで返したかを表示）
+  const P=purchases(true).filter(p=>p.buyer+"｜"+p.card===key).sort((a,b)=>(a.date||"").localeCompare(b.date||""));
+  let pool=o.paid;const rows=P.map(p=>{const cov=Math.max(0,Math.min(p.amount,pool));pool-=cov;return {p,cov}});
+  const chips=[...new Set([o.owed,1000,5000,10000,30000,50000].filter(v=>v>0&&(v===o.owed||v<o.owed)))];
+  openSheet(L.t,`<div class="rcpt"><div class="hd"><span>${esc(L.s)}</span><span>${o.n}件</span></div><div class="ln"><span>これまでの合計</span><b>${yen(o.total)}</b></div><div class="ln"><span>返した合計</span><b>−${yen(o.paid)}</b></div><div class="tot"><span>残り</span><b>${yen(o.owed)}</b></div>
+    <div class="stbar"><i style="width:${o.total?Math.min(100,o.paid/o.total*100):0}%"></i></div></div>
+  ${o.owed>0&&S.canWrite?`<div class="grp"><div class="gh">今回返す金額</div><div class="box stbox">
+    <label class="stamt"><i>¥</i><input id="st-v" type="number" inputmode="numeric" placeholder="0" aria-label="返す金額"></label>
+    <div class="stchips">${chips.map(v=>`<button type="button" data-stv="${v}">${v===o.owed?`全部 ${yen(v)}`:yen(v)}</button>`).join("")}</div>
+    <div class="stprev" id="st-prev">金額を入れると、返したあとの残りが出ます</div>
+    <label class="fr"><span>返した日</span><input id="st-d" type="date" value="${TD}"></label></div></div>`:""}
+  ${rows.length?`<div class="grp"><div class="gh">内訳<small style="font-weight:600;color:var(--ink3);margin-left:6px">古いものから返したことにしています</small></div><div class="box stlist">${rows.slice().reverse().map(({p,cov})=>`<div class="sti ${cov>=p.amount?"done":cov>0?"part":""}"><span class="std">${md(p.date)}</span><span class="stn">${esc(p.label)}<small>${p.kind}</small></span><span class="sta"><b>${yen(p.amount)}</b><small>${cov>=p.amount?"返済済み":cov>0?`あと${yen(p.amount-cov)}`:"まだ"}</small></span></div>`).join("")}</div></div>`:""}
+  ${hist.length?`<div class="grp"><div class="gh">返した記録</div><div class="box">${hist.map(x=>`<div class="fr"><span>${md(x.date)}</span><span class="hx" style="text-align:right;flex:1">${yen(x.amount)}</span>${S.canWrite?`<button type="button" class="rm" data-unsettle="${esc(x.id)}" style="color:var(--red);font-size:13px;padding-left:10px">取り消す</button>`:""}</div>`).join("")}</div></div>`:""}`,null,"settle-form",true,o.owed>0&&S.canWrite?`<div class="fsum"><span>返したあと</span><b id="st-after">${yen(o.owed)}</b></div><button type="submit" class="btn pri" id="st-go" disabled>金額を入れる</button>`:"");
+  const f=$("#settle-form");if(!f)return;const inp=f.querySelector("#st-v");
+  const upd=()=>{if(!inp)return;const v=Math.round(+inp.value||0),after=o.owed-v,go=$("#st-go"),pv=$("#st-prev"),af=$("#st-after");
+    if(af)af.textContent=v>0?yen(Math.max(0,after)):yen(o.owed);
+    if(pv)pv.innerHTML=v<=0?"金額を入れると、返したあとの残りが出ます":after<0?`<span class="warn">残り ${yen(o.owed)} より ${yen(-after)} 多いです</span>`:after===0?"これで<b>全部返し終わります</b> 🎉":`返したあと残り <b>${yen(after)}</b>`;
+    f.querySelectorAll("[data-stv]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.stv===v));
+    if(go){go.disabled=v<=0;go.textContent=v>0?`${yen(v)} 返した`:"金額を入れる"}};
+  if(inp){inp.addEventListener("input",upd);f.addEventListener("click",e=>{const b=e.target.closest("[data-stv]");if(b){inp.value=b.dataset.stv;upd()}})}
+  f.addEventListener("submit",async e=>{e.preventDefault();if(!inp)return;const v=Math.round(+inp.value||0);if(v<=0){toast("金額を入れてください");return}
+    if(v>o.owed){const go=$("#st-go");if(!go.dataset.armed){go.dataset.armed="1";go.textContent="多いけど記録する";return}}
     const rec={id:uid("s"),buyer:o.buyer,card:o.card,amount:v,date:f.querySelector("#st-d").value||TD,at:Date.now()};
-    if(await put("settles",rec)){dlg.close();celebrate(isSelf(o.buyer)?`${o.card}の支払い ${yen(v)} 完了`:`${o.buyer}さんに ${yen(v)} 返しました`,true)}});
+    if(await put("settles",rec)){dlg.close();const left=Math.max(0,o.owed-v);celebrate(isSelf(o.buyer)?`${o.card}に ${yen(v)} 支払い（残り ${yen(left)}）`:`${o.buyer}さんに ${yen(v)} 返しました（残り ${yen(left)}）`,true)}});
 }
 
 /* card motifs: small icon + faint watermark */
@@ -2079,6 +2161,7 @@ function vHome(D){
   const C=cfg(),items=Object.values(S.items);
   if(!items.length&&!Object.keys(S.titles).length&&!Object.keys(S.exps).length)return `<section class="card deco k-stock welcome"><span class="wmk" aria-hidden="true">${MI.stock}</span>${lane(true)}<h2 class="cute" style="text-align:center;margin:4px 0 6px">ようこそ、せどりっちょへ</h2><p class="note" style="text-align:center;margin:0 0 4px">仕入れたら下のボタンで記録、売れたら「売れた！」を押すだけ。<br>利益や在庫は自動で計算されます</p>${S.canWrite&&IS_APP?`<label class="btn sm" style="margin:10px auto 0;display:flex;width:fit-content;position:relative;cursor:pointer">前のアプリのバックアップを読み込む<input type="file" id="bk-in" accept=".json,application/json" style="position:absolute;inset:0;opacity:0"></label>`:""}</section>${quickHTML()}`;
   const k=S.hm,M=monthStats(D,k),mm=+k.slice(5);
+  const HV=HMODE()==="cash"?{m:"cash",v:M.cash,lbl:"収支"}:{m:"profit",v:M.net,lbl:"利益"};
   const goal=+C.goal||0,gp=goal?Math.max(0,Math.min(1,M.net/goal)):0,circ=2*Math.PI*30;
   const ring=goal?`<div class="ring" aria-label="目標達成率"><svg viewBox="0 0 76 76"><circle cx="38" cy="38" r="30" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="7"/><circle class="fg" cx="38" cy="38" r="30" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-dasharray="${circ}" stroke-dashoffset="${circ*(1-gp)}" style="--c:${circ}"/></svg><span><span><b>${Math.round(goal?M.net/goal*100:0)}%</b>目標</span></span></div>`:"";
   // todo
@@ -2097,9 +2180,10 @@ function vHome(D){
   <section class="hero" data-goal="${goal&&M.net>=goal&&k===CUR?"hit":""}">${DECO}
     <div class="mnav"><button type="button" data-hm="-1" aria-label="前の月">${I(IC.l,2.2)}</button><b>${mlabel(k)}</b><button type="button" data-hm="1" aria-label="次の月" ${k>=CUR?"disabled":""}>${I(IC.r,2.2)}</button></div>
     <div class="row"><div class="hl">
-      <div class="cap"><span class="capi">¥</span><span class="capt">${mm}月の利益</span>${M.exp?`<span class="capp">経費ひいた額</span>`:""}</div>
-      <div class="big n ${pm(M.net)}">${M.net<0?"−":M.net>0?"+":""}<small>¥</small><span class="cnt" data-v="${Math.round(Math.abs(M.net))}">${Math.round(Math.abs(M.net)).toLocaleString("ja-JP")}</span>${M.net>0?`<span class="spk" aria-hidden="true">${I('<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',2)}</span>`:""}</div>
-      ${(()=>{const P=monthStats(D,shiftM(k,-1)),df=M.net-P.net;if(!P.net&&!M.net)return"";return `<span class="vs ${df<0?"dn":""}">${df>=0?"▲":"▼"} 先月より ${df>=0?"+":"−"}${yen(Math.abs(df)).replace("−","")}</span>`})()}
+      <div class="cap"><span class="capi">¥</span><span class="capt">${mm}月の${HV.lbl}</span><span class="hmt" role="group" aria-label="表示の切り替え"><button type="button" data-hmode="profit" aria-pressed="${HV.m==="profit"}">利益</button><button type="button" data-hmode="cash" aria-pressed="${HV.m==="cash"}">収支</button></span></div>
+      <div class="big n ${pm(HV.v)}" role="button" tabindex="0" data-act="month-why" aria-label="内訳を見る">${HV.v<0?"−":HV.v>0?"+":""}<small>¥</small><span class="cnt" data-v="${Math.round(Math.abs(HV.v))}">${Math.round(Math.abs(HV.v)).toLocaleString("ja-JP")}</span>${M.net>0?`<span class="spk" aria-hidden="true">${I('<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',2)}</span>`:""}</div>
+      <button type="button" class="whyb" data-act="month-why">内訳を見る ›</button>
+      ${(()=>{const P=monthStats(D,shiftM(k,-1)),pv=HV.m==="cash"?P.cash:P.net,df=HV.v-pv;if(!pv&&!HV.v)return"";return `<span class="vs ${df<0?"dn":""}">${df>=0?"▲":"▼"} 先月より ${df>=0?"+":"−"}${yen(Math.abs(df)).replace("−","")}</span>`})()}
     </div></div>
     <div class="mini">
       <div class="mt"><span class="mi2 s">${I('<path d="M12 19V6M6.5 11.5L12 6l5.5 5.5"/>',2.4)}</span><span class="ml">売上</span><b class="n">${yen(M.sales)}</b></div>
@@ -2173,13 +2257,32 @@ function titleStats(t,D){
   const tg=(D.grp&&D.grp[t.id])||[];
   return {its,cost,net,bal:net-cost,recov:cost?net/cost:null,proj:net+expNet-cost,sold,sales,tg:tg.length,per:tg.length&&D.mode[t.id]==="equal"?n(t.bulkCost)/tg.length:null};
 }
+const serKey=n=>String(n||"").normalize("NFKC").toLowerCase().replace(/[（(【\[][^）)】\]]*[）)】\]]\s*$/,"").replace(/[\s・\-_/〜~]/g,"");
+function serSummary(rows,name){
+  let cost=0,net=0,proj=0,draws=0,its=0,sold=0,kept=0,keptL=[];
+  rows.forEach(({t,s})=>{cost+=s.cost;net+=s.net;proj+=s.proj;draws+=n(t.draws);its+=s.its.length;sold+=s.sold;s.its.forEach(i=>{if(i.status==="kept"){kept++;keptL.push(i.prize||i.name)}})});
+  const bal=net-cost,rec=cost?net/cost:null,remain=Math.max(0,cost-net),L=esc(keptL.slice(0,2).join("・")+(keptL.length>2?`ほか${keptL.length-2}点`:""));
+  return `<section class="sersum"><div class="sh"><span class="si">${I(IC.ticket,2)}</span><div><b>${esc(name)}</b><small>${rows.length}回分${draws?`・合計${draws}回`:""}・${its}点（売れた${sold}点）</small></div><button type="button" class="link" data-ser="">解除</button></div>
+    <div class="sg"><div><span>仕入れ合計</span><b>${yen(cost)}</b></div><div><span>売れた分の手取り</span><b>${yen(net)}</b></div><div><span>回収率</span><b>${pct(rec)}</b></div></div>
+    <div class="sb"><span>${kept&&bal<0?`★${L} 実質`:"いまの収支"}</span><b class="${kept&&bal<0?"kp":pm(bal)}">${kept&&bal<0?yen(remain):sYen(bal)}</b></div>
+    ${kept?(bal>=0?`<div class="kst free"><span class="kic">★</span><div><b>利益 ${sYen(bal)} ＋ ${L}がタダ！</b></div></div>`:`<div class="kst"><span class="kic">★</span><div><b>${L}を 実質 ${yen(remain)} で入手中</b><small>あと ${yen(remain)} 売れたらタダ</small></div></div>`):`<p class="note" style="margin:6px 2px 0">全部売れたら ${sYen(proj)}</p>`}
+  </section>`;
+}
 function vTitles(D){return subSeg()+vTitlesBody(D)}
 function vTitlesBody(D){
   const T=Object.values(S.titles);
   if(!T.length)return empty("ticket","タイトルはまだありません","一番くじやガチャのシリーズごとに、全部まとめた収支が出せます","new-title","タイトルを追加");
-  const rows=T.map(t=>({t,s:titleStats(t,D)})).sort((a,b)=>(b.t.pDate||"").localeCompare(a.t.pDate||""));
+  const all=T.map(t=>({t,s:titleStats(t,D),k:serKey(t.name)})).sort((a,b)=>(b.t.pDate||"").localeCompare(a.t.pDate||""));
+  const cnt={};all.forEach(x=>{(cnt[x.k]=cnt[x.k]||{n:0,name:x.t.name}).n++});
+  const sers=Object.entries(cnt).filter(([k,v])=>v.n>1).sort((a,b)=>b[1].n-a[1].n);
+  const q=serKey(S.tq||""),sk=S.tser||"";
+  const rows=all.filter(x=>(!sk||x.k===sk)&&(!q||x.k.includes(q)));
   const tb=rows.reduce((a,x)=>a+x.s.bal,0),plus=rows.filter(x=>x.s.bal>=0).length;
-  return `<div class="sumbar"><span><b>${rows.length}</b>タイトル</span><span>黒字 <b>${plus}</b></span><span>合計 <b class="${pm(tb)}">${sYen(tb)}</b></span></div>
+  const filt=!!(sk||q);
+  return `<label class="search sx">${I(IC.search)}<input type="search" id="f-tq" placeholder="タイトル名でしぼる（例：ワンピース）" value="${esc(S.tq||"")}" aria-label="タイトルをしぼる"></label>
+  ${sers.length?`<div class="serchips">${sers.map(([k,v])=>`<button type="button" class="serc" data-ser="${esc(k)}" aria-pressed="${sk===k}">${esc(v.name)}<span>×${v.n}</span></button>`).join("")}</div>`:""}
+  ${filt?serSummary(rows,sk?cnt[sk].name:(S.tq||"")):`<div class="sumbar"><span><b>${rows.length}</b>タイトル</span><span>黒字 <b>${plus}</b></span><span>合計 <b class="${pm(tb)}">${sYen(tb)}</b></span></div>`}
+  ${filt&&!rows.length?`<div class="card empty">条件に合うタイトルはありません</div>`:""}
   <div class="cards tcards">${rows.map(({t,s})=>{const w=s.recov==null?0:Math.min(s.recov,2)/2*100;
     return `<article class="tcard${S.selTitle===t.id?" sel":""}" role="button" tabindex="0" data-title="${esc(t.id)}" aria-current="${S.selTitle===t.id}">
       <div class="top">${thumb(imgSrc(t),t.cat1,true)}<div class="main"><h3>${esc(t.name)}</h3><div class="pills">${t.cat1?`<span class="pill">${esc(t.cat1)}</span>`:""}${t.draws?`<span class="pill days">${t.draws}回</span>`:""}${(()=>{const kn=s.its.filter(i=>i.status==="kept").length;if(!kn)return "";const kc=keptCalc(t.id);return `<span class="pill kept">★${kn}${kc&&kc.paid?"・タダ！":""}</span>`})()}${s.tg?`<span class="pill listed">${s.per!=null?`当たり${s.tg}点・1点 ${yen(s.per)}`:`当たり${s.tg}点・値段比`}</span>`:""}</div></div></div>
@@ -2310,7 +2413,7 @@ function vSettings(){
   </div></div>
   <div class="grp"><div class="gh">バックアップ</div><div class="box"><button type="button" class="act" data-act="backup">バックアップを書き出す</button>${S.canWrite?`<label class="act" style="cursor:pointer;position:relative">バックアップから読み込む<input type="file" id="bk-in" accept=".json,application/json" style="position:absolute;inset:0;opacity:0"></label>`:""}</div><p class="note" style="padding:0 4px">${IS_APP?"データはこのiPhoneの中に保存されています。機種変更の前や、ときどきバックアップを書き出しておくと安心です":"独立版アプリにデータを移すときは、ここで書き出したファイルを独立版で読み込みます"}</p></div>
   <div class="grp"><div class="gh">データ</div><div class="box"><button type="button" class="act" data-act="export-all">全商品をCSVに書き出す</button>${sn&&S.canWrite?`<button type="button" class="act del" data-act="del-sample">サンプル${sn}件を削除</button>`:""}</div></div>
-  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.14-12</p>
+  <p class="note" style="text-align:center;margin-top:8px">せどりっちょ ver.10.30-1</p>
   </div>`;
 }
 
@@ -2748,6 +2851,9 @@ document.addEventListener("click",async e=>{
   if(ds.title){S.selTitle=ds.title;document.querySelectorAll(".tcard.sel").forEach(x=>x.classList.remove("sel"));if(el.classList.contains("tcard"))el.classList.add("sel");titleDialog(ds.title);return}
   if(ds.exp){expDialog(ds.exp);return}
   if(el.hasAttribute("data-tip")){const T=S.tips||[];if(T.length<2)return;S.tipIx=(S.tipIx+1)%T.length;const [m,c]=T[S.tipIx];el.innerHTML=`${CAPICON(c)}<span class="tt swap">${m}</span><span class="nx">${S.tipIx+1}/${T.length}</span>`;return}
+  if(ds.ser!==undefined&&el.classList.contains("serc")||(ds.ser!==undefined&&el.closest(".sersum"))){S.tser=S.tser===ds.ser||!ds.ser?"":ds.ser;if(!ds.ser)S.tq="";render();return}
+  if(ds.hmode){try{localStorage.setItem("sedori-hmode",ds.hmode)}catch(x){}render();return}
+  if(a==="month-why"){monthWhy(S.hm);return}
   if(ds.hm){const k=shiftM(S.hm,+ds.hm);if(k<=CUR){S.hm=k;S.enter=true;render()}return}
   if(ds.hmset){S.hm=ds.hmset;S.enter=true;render();return}
   if(ds.fstatus!==undefined){S.f.status=ds.fstatus;render();return}
@@ -2808,7 +2914,8 @@ document.addEventListener("click",async e=>{
   }
 });
 document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.matches("[role=button]")){e.preventDefault();e.target.click()}});
-document.addEventListener("input",e=>{if(e.target.id==="f-q"){S.f.q=e.target.value;const p=e.target.selectionStart;render();const q=$("#f-q");if(q){q.focus();try{q.setSelectionRange(p,p)}catch(x){}}}});
+document.addEventListener("input",e=>{if(e.target.id==="f-tq"){S.tq=e.target.value;S.tser="";const p=e.target.selectionStart;render();const q=$("#f-tq");if(q){q.focus();try{q.setSelectionRange(p,p)}catch(x){}}return}
+  if(e.target.id==="f-q"){S.f.q=e.target.value;const p=e.target.selectionStart;render();const q=$("#f-q");if(q){q.focus();try{q.setSelectionRange(p,p)}catch(x){}}}});
 function setThemeKey(k,v,save){
   const C=cfg();themeDraft=Object.assign({},DEF_THEME,themeDraft||C.theme||{},{[k]:v});
   if(k==="main"&&themeDraft.k1.toLowerCase()===(C.theme?.main||DEF_THEME.main).toLowerCase())themeDraft.k1=v;
